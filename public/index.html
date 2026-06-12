@@ -124,12 +124,6 @@
                 <span class="dropdown-email" id="dropdown-header-email">user@biosync.com</span>
                 <span class="dropdown-role" id="dropdown-header-role">user</span>
               </div>
-              <div class="dropdown-item" data-view="profile">
-                <span>Profile Settings</span>
-              </div>
-              <div class="dropdown-item" data-view="dashboard">
-                <span>Dashboard</span>
-              </div>
               <div class="dropdown-item danger" id="dropdown-logout-btn">
                 <span>Logout</span>
               </div>
@@ -141,8 +135,315 @@
       <!-- VIEW CONTENT CONTAINER -->
       <main class="app-content">
 
+        <!-- ================= 0. LANDING VIEW ================= -->
+        <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>BioSync — Health as a rhythm</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0b1219;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+      color: #eef2f8;
+      line-height: 1.4;
+    }
+
+    /* Glass panels — original dark/translucent style */
+    .glass-panel {
+      background: rgba(18, 25, 35, 0.75);
+      backdrop-filter: blur(4px);
+      border-radius: 32px;
+      border: 1px solid rgba(60, 90, 110, 0.3);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      padding: 2rem 1.8rem;
+      transition: 0.2s;
+    }
+
+    .landing-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1rem 2rem 3rem;
+    }
+
+    /* Header — unchanged colors */
+    .landing-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 4rem;
+    }
+
+    .landing-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 1.6rem;
+      background: linear-gradient(135deg, #3ccbb1, #2ea390);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .logo-icon {
+      font-size: 1.9rem;
+      background: none;
+      -webkit-background-clip: unset;
+      background-clip: unset;
+      color: #3ccbb1;
+    }
+
+    .landing-nav-btns {
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    .btn-secondary, .btn-primary {
+      border: none;
+      padding: 0.6rem 1.3rem;
+      border-radius: 60px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .btn-secondary {
+      background: #1e2a36;
+      color: #cbdbe6;
+      border: 1px solid #2f3e4e;
+    }
+
+    .btn-primary {
+      background: #3ccbb1;
+      color: #0a1117;
+      font-weight: 600;
+    }
+
+    .btn-large {
+      padding: 0.8rem 2rem;
+      font-size: 1rem;
+    }
+
+    /* Hero section */
+    .landing-hero-section {
+      text-align: center;
+      margin-bottom: 5rem;
+    }
+
+    .landing-hero-title {
+      font-size: 3.2rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      color: #f0f6fc;
+    }
+
+    .highlight-text {
+      background: linear-gradient(120deg, #3ccbb1, #86e0cf);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .landing-hero-subtitle {
+      font-size: 1.2rem;
+      max-width: 650px;
+      margin: 1rem auto 2rem;
+      color: #9bb1c4;
+      line-height: 1.4;
+    }
+
+    .landing-cta-row {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* sections */
+    .landing-section {
+      margin-bottom: 4rem;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      color: #eef3fc;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .section-desc {
+      font-size: 1rem;
+      color: #bfd4e5;
+      line-height: 1.5;
+      max-width: 80ch;
+    }
+
+    .landing-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.8rem;
+    }
+
+    .landing-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .landing-card h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #8dd9cb;
+    }
+
+    .landing-card p {
+      color: #cbddee;
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    /* footer */
+    .landing-footer {
+      text-align: center;
+      padding-top: 2rem;
+      border-top: 1px solid #1e2e3c;
+      color: #6c8aa3;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 700px) {
+      .landing-container {
+        padding: 1rem 1.2rem 2rem;
+      }
+      .landing-hero-title {
+        font-size: 2.2rem;
+      }
+      .landing-header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+      }
+      .landing-nav-btns {
+        justify-content: center;
+      }
+      .glass-panel {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<section id="view-landing" class="view-segment landing-container">
+  <header class="landing-header">
+    <div class="landing-logo" data-view="landing">
+      <span class="logo-icon">🩺</span>
+      <span class="logo-text">BioSync</span>
+    </div>
+    <div class="landing-nav-btns">
+      <button class="btn-secondary" data-view="login">Sign In</button>
+      <button class="btn-primary" data-view="signup">Get Started</button>
+    </div>
+  </header>
+
+  <main class="landing-hero-section">
+    <h1 class="landing-hero-title">Health is not a checklist — <br><span class="highlight-text">it's a rhythm.</span></h1>
+    <p class="landing-hero-subtitle">
+      BioSync listens to your body, learns who you are, and intelligently suggests the one thing you need right now to feel better.
+    </p>
+    <div class="landing-cta-row">
+      <button class="btn-primary btn-large" data-view="signup">Join BioSync Today</button>
+      <button class="btn-secondary btn-large" onclick="document.getElementById('landing-about').scrollIntoView({ behavior: 'smooth' })">Learn More</button>
+    </div>
+  </main>
+
+  <!-- ========== SECTION 1: Welcome to BioSync (shorter, clearer) ========== -->
+  <section id="landing-about" class="landing-section">
+    <div class="glass-panel landing-card">
+      <h2 class="section-title">Welcome to BioSync</h2>
+      <p class="section-desc">
+        Your body sends signals — heart rate, stress, sleep, movement. But numbers alone don't tell you what to do next.
+        BioSync bridges that gap. We combine smartwatch data with your habits, goals, and personality.
+        Then we whisper one gentle, intelligent suggestion to help you feel better — right now.
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== SECTION 2: Our Vision (3 cards — restructured for scanability) ========== -->
+  <section id="landing-vision" class="landing-section">
+    <h2 class="section-title text-center">Our Vision</h2>
+    <div class="landing-grid-3">
+      <!-- card 1: Beyond Tracking -->
+      <div class="glass-panel landing-card">
+        <h3>Beyond Tracking</h3>
+        <p>
+          Most wearables show data, but they don't know you. BioSync learns your introverted style, your evening creativity, your need for gentle motivation. We combine biometrics with your real-life rhythm.
+        </p>
+      </div>
+      <!-- card 2: Moment-Ready Guidance -->
+      <div class="glass-panel landing-card">
+        <h3>Moment-Ready Guidance</h3>
+        <p>
+          Health shifts day by day. Share how you feel, and our AI matches your heart rate, stress, and profile — generating a suggestion for that exact moment, not a generic goal.
+        </p>
+      </div>
+      <!-- card 3: Your Terms -->
+      <div class="glass-panel landing-card">
+        <h3>Every Goal, Your Terms</h3>
+        <p>
+          Deeper sleep, natural movement, or daily calm — we don't force routines. BioSync aligns with your energy, hobbies, and pace. The more you use it, the more it feels like your coach.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SECTION 3: What BioSync Does + Our Plan (2 columns, clearer hierarchy) ========== -->
+  <section id="landing-platform" class="landing-section">
+    <div class="landing-grid-2">
+      <div class="glass-panel landing-card">
+        <h3>What BioSync Does</h3>
+        <p>
+          Merges wrist biometrics (heart rate, HRV, stress) with your profile and daily check-ins. AI generates micro-suggestions — breathing exercises, water reminders, low-sugar recipes, sunset walks — that fit your real energy.
+        </p>
+      </div>
+      <div class="glass-panel landing-card">
+        <h3>Evolving With You</h3>
+        <p>
+          Next phases: predict energy dips, sync with your calendar and weather, and sharpen recommendations based on what you follow. Real health is made of tiny, human moments — not rigid rules.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="landing-footer">
+    <p>&copy; 2026 BioSync Context Engine. All rights reserved.</p>
+  </footer>
+</section>
+
+<!-- identical button behaviour (demo actions) -->
+
+</body>
+</html>
+
         <!-- ================= 1. LOGIN VIEW ================= -->
-        <section id="view-login" class="view-segment auth-container">
+        <section id="view-login" class="view-segment auth-container hidden">
           <div class="glass-panel auth-card">
             <h2 class="auth-title">Welcome back</h2>
             <p class="auth-subtitle">Sign in to sync your biometrics</p>
@@ -172,41 +473,174 @@
 
         <!-- ================= 2. SIGN UP / ONBOARDING VIEW ================= -->
         <section id="view-signup" class="view-segment auth-container hidden">
-          <div class="glass-panel auth-card" style="max-width: 600px;">
+          <div class="glass-panel auth-card" style="max-width: 650px;">
             <h2 class="auth-title">Create Account</h2>
             <p class="auth-subtitle">Configure your lifestyle context & hobbies</p>
+
+            <!-- Wizard Progress Header -->
+            <div class="wizard-progress-container">
+              <div class="wizard-progress-track">
+                <div class="wizard-progress-bar" id="signup-progress-bar" style="width: 33.3%;"></div>
+              </div>
+              
+            </div>
             
             <form id="signup-form">
-              <div class="form-group">
-                <label class="form-label" for="signup-email">Email Address</label>
-                <input type="email" id="signup-email" class="form-input" placeholder="name@domain.com" required>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="signup-password">Password</label>
-                <input type="password" id="signup-password" class="form-input" placeholder="••••••••" required>
-              </div>
-
-              <!-- Wellness Goals Selector -->
-              <div class="form-group">
-                <label class="form-label">Core Wellness Goals</label>
-                <div class="selection-grid" id="goals-selection-grid">
-                  <!-- Populated dynamically by JS -->
+              <!-- STEP 1: Account Credentials -->
+              <div class="wizard-step active" id="wizard-step-1">
+                <h3 class="step-title">Account Details</h3>
+                <div class="form-group">
+                  <label class="form-label" for="signup-email">Email Address</label>
+                  <input type="email" id="signup-email" class="form-input" placeholder="name@domain.com" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="signup-password">Password</label>
+                  <input type="password" id="signup-password" class="form-input" placeholder="••••••••" required>
                 </div>
               </div>
 
-              <!-- Hobbies Selector -->
-              <div class="form-group">
-                <label class="form-label">Favorite Hobbies</label>
-                <div class="selection-grid" id="hobbies-selection-grid">
-                  <!-- Populated dynamically by JS -->
+              <!-- STEP 2: Lifestyle Context (Questions 1-5) -->
+              <div class="wizard-step hidden" id="wizard-step-2">
+                <h3 class="step-title">Wellness Preferences</h3>
+
+                <!-- Q1: Primary Wellness Goal -->
+                <div class="form-group wizard-question" data-qid="q1" data-type="single">
+                  <label class="form-label">What’s your primary wellness goal right now?</label>
+                  <div class="selection-grid-vertical">
+                    <div class="selection-card" data-val="Improve sleep quality">Improve sleep quality</div>
+                    <div class="selection-card" data-val="Reduce stress and feel calmer">Reduce stress and feel calmer</div>
+                    <div class="selection-card" data-val="Increase daily movement and fitness">Increase daily movement and fitness</div>
+                    <div class="selection-card" data-val="Eat healthier and more mindfully">Eat healthier and more mindfully</div>
+                    <div class="selection-card" data-val="Build strength or muscle tone">Build strength or muscle tone</div>
+                    <div class="selection-card" data-val="Maintain overall health and balance">Maintain overall health and balance</div>
+                  </div>
+                </div>
+
+                <!-- Q2: Daily Routine -->
+                <div class="form-group wizard-question" data-qid="q2" data-type="single">
+                  <label class="form-label">How would you describe your typical daily routine?</label>
+                  <div class="selection-grid-vertical">
+                    <div class="selection-card" data-val="Mostly sedentary (desk job, long sitting hours)">Mostly sedentary (desk job, long sitting hours)</div>
+                    <div class="selection-card" data-val="Lightly active (some walking, standing)">Lightly active (some walking, standing)</div>
+                    <div class="selection-card" data-val="Moderately active (regular exercise or physically engaging work)">Moderately active (regular exercise or physically engaging work)</div>
+                    <div class="selection-card" data-val="Very active (intense training or physically demanding days)">Very active (intense training or physically demanding days)</div>
+                  </div>
+                </div>
+
+                <!-- Q3: Energy Peak -->
+                <div class="form-group wizard-question" data-qid="q3" data-type="single">
+                  <label class="form-label">When do you usually feel most energetic and focused?</label>
+                  <div class="selection-grid-vertical">
+                    <div class="selection-card" data-val="Morning (before noon)">Morning (before noon)</div>
+                    <div class="selection-card" data-val="Afternoon">Afternoon</div>
+                    <div class="selection-card" data-val="Evening">Evening</div>
+                    <div class="selection-card" data-val="Late night">Late night</div>
+                  </div>
+                </div>
+
+                <!-- Q4: Environment -->
+                <div class="form-group wizard-question" data-qid="q4" data-type="single">
+                  <label class="form-label">Which environment makes you feel most at ease?</label>
+                  <div class="selection-grid-vertical">
+                    <div class="selection-card" data-val="The comfort of indoors">The comfort of indoors</div>
+                    <div class="selection-card" data-val="The freedom of outdoors">The freedom of outdoors</div>
+                    <div class="selection-card" data-val="I genuinely enjoy both equally">I genuinely enjoy both equally</div>
+                  </div>
+                </div>
+
+                <!-- Q5: Healthy Habit Try -->
+                <div class="form-group wizard-question" data-qid="q5" data-type="single">
+                  <label class="form-label">How do you prefer to try new healthy habits?</label>
+                  <div class="selection-grid-vertical">
+                    <div class="selection-card" data-val="I like small, gradual changes that stick">I like small, gradual changes that stick</div>
+                    <div class="selection-card" data-val="I’m excited by bold, immediate shifts">I’m excited by bold, immediate shifts</div>
+                    <div class="selection-card" data-val="It really depends on my mood and season">It really depends on my mood and season</div>
+                  </div>
                 </div>
               </div>
-              
+
+              <!-- STEP 3: Recharge & Hobbies (Questions 6-10) -->
+              <div class="wizard-step hidden" id="wizard-step-3">
+                <h3 class="step-title">Hobbies & Lifestyle</h3>
+
+                <!-- Q6: Recharge Method -->
+                <div class="form-group wizard-question" data-qid="q6" data-type="multi" data-max="2">
+                  <label class="form-label">What best describes how you recharge after a draining day? (Pick up to 2)</label>
+                  <div class="selection-grid-vertical">
+                    <div class="selection-card" data-val="Quiet solo time">Quiet solo time</div>
+                    <div class="selection-card" data-val="Watching a show, reading, or gaming">Watching a show, reading, or gaming</div>
+                    <div class="selection-card" data-val="Talking with close friends or family">Talking with close friends or family</div>
+                    <div class="selection-card" data-val="Moving my body (walk, stretch, light workout)">Moving my body (walk, stretch, light workout)</div>
+                    <div class="selection-card" data-val="Doing something creative or hands-on (cooking, art, music)">Doing something creative or hands-on (cooking, art, music)</div>
+                  </div>
+                </div>
+
+                <!-- Q7: Hobbies selection -->
+                <div class="form-group wizard-question" data-qid="q7" data-type="multi" data-max="99">
+                  <label class="form-label">Which hobbies or activities genuinely light you up? (Select all that apply)</label>
+                  <div class="selection-grid">
+                    <div class="selection-card" data-val="Reading, writing, or journaling">Reading, writing, or journaling</div>
+                    <div class="selection-card" data-val="Music, art, or creative projects">Music, art, or creative projects</div>
+                    <div class="selection-card" data-val="Gaming or puzzles">Gaming or puzzles</div>
+                    <div class="selection-card" data-val="Cooking or baking">Cooking or baking</div>
+                    <div class="selection-card" data-val="Yoga, pilates, or mindful movement">Yoga, pilates, or mindful movement</div>
+                    <div class="selection-card" data-val="Running, cycling, or cardio">Running, cycling, or cardio</div>
+                    <div class="selection-card" data-val="Strength training or gym workouts">Strength training or gym workouts</div>
+                    <div class="selection-card" data-val="Hiking, walking, or nature time">Hiking, walking, or nature time</div>
+                    <div class="selection-card" data-val="Team sports or group classes">Team sports or group classes</div>
+                    <div class="selection-card" data-val="Dancing">Dancing</div>
+                    <div class="selection-card" data-val="Gardening or DIY projects">Gardening or DIY projects</div>
+                    <div class="selection-card" data-val="I don’t have a specific hobby right now">I don’t have a specific hobby right now</div>
+                  </div>
+                </div>
+
+                <!-- Q8: Motivation type -->
+                <div class="form-group wizard-question" data-qid="q8" data-type="single">
+                  <label class="form-label">What type of motivation works best for you?</label>
+                  <div class="selection-grid-vertical">
+                    <div class="selection-card" data-val="Data and measurable progress">Data and measurable progress</div>
+                    <div class="selection-card" data-val="Positive, encouraging language">Positive, encouraging language</div>
+                    <div class="selection-card" data-val="Friendly challenges or social motivation">Friendly challenges or social motivation</div>
+                    <div class="selection-card" data-val="Gentle, soft nudges and reminders">Gentle, soft nudges and reminders</div>
+                  </div>
+                </div>
+
+                <!-- Q9: Diet preferences -->
+                <div class="form-group wizard-question" data-qid="q9" data-type="single">
+                  <label class="form-label">Do you have any dietary preferences or restrictions?</label>
+                  <div class="selection-grid-vertical">
+                    <div class="selection-card" data-val="No restrictions">No restrictions</div>
+                    <div class="selection-card" data-val="Vegetarian">Vegetarian</div>
+                    <div class="selection-card" data-val="Vegan">Vegan</div>
+                    <div class="selection-card" data-val="Gluten-free">Gluten-free</div>
+                    <div class="selection-card" data-val="Dairy-free">Dairy-free</div>
+                    <div class="selection-card" data-val="Low-carb or keto">Low-carb or keto</div>
+                    <div class="selection-card" data-val="Intermittent faster">Intermittent faster</div>
+                    
+                  </div>
+                </div>
+
+                <!-- Q10: Social situations -->
+                <div class="form-group wizard-question" data-qid="q10" data-type="single">
+                  <label class="form-label">In social situations, you usually…</label>
+                  <div class="selection-grid-vertical">
+                    <div class="selection-card" data-val="Prefer to listen and observe">Prefer to listen and observe</div>
+                    <div class="selection-card" data-val="Enjoy one-on-one or small group conversations">Enjoy one-on-one or small group conversations</div>
+                    <div class="selection-card" data-val="Feel energized in larger, lively groups">Feel energized in larger, lively groups</div>
+                    <div class="selection-card" data-val="It shifts a lot depending on the context">It shifts a lot depending on the context</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Signup Error -->
               <div id="signup-error" class="badge badge-pink mb-1 hidden" style="width:100%; text-align:center; padding:0.6rem;"></div>
-              
-              <button type="submit" class="btn-primary" id="signup-submit-btn" style="width:100%;">
-                <span>Begin Onboarding</span>
-              </button>
+
+              <!-- Wizard Footer Navigation -->
+              <div class="wizard-footer">
+                <button type="button" class="btn-secondary hidden" id="signup-prev-btn">Back</button>
+                <button type="button" class="btn-primary" id="signup-next-btn" style="margin-left: auto;">Next</button>
+                <button type="submit" class="btn-primary hidden" id="signup-submit-btn" style="margin-left: auto;">Create Account</button>
+              </div>
             </form>
             
             <p class="auth-switch">
@@ -546,6 +980,35 @@
             </div>
           </div>
 
+          <!-- Granular AI Insights Cards -->
+          <div id="report-insights-container" class="glass-panel mt-1 hidden" style="border-top: 3px solid var(--accent-cyan); margin-bottom: 1.5rem;">
+            <h3 class="reports-card-header" style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent-cyan);">
+              🔍 Granular Recovery Recommendations
+            </h3>
+            <div class="insights-grid-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div class="insight-row-item" style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem; display: flex; align-items: baseline;">
+                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">😴 Sleep:</span>
+                <span id="insight-sleep-val" style="color: var(--text-muted);">--</span>
+              </div>
+              <div class="insight-row-item" style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem; display: flex; align-items: baseline;">
+                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">💧 Hydration:</span>
+                <span id="insight-hydration-val" style="color: var(--text-muted);">--</span>
+              </div>
+              <div class="insight-row-item" style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem; display: flex; align-items: baseline;">
+                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">🧘 Stress:</span>
+                <span id="insight-stress-val" style="color: var(--text-muted);">--</span>
+              </div>
+              <div class="insight-row-item" style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem; display: flex; align-items: baseline;">
+                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">📈 Heart Rate:</span>
+                <span id="insight-heartrate-val" style="color: var(--text-muted);">--</span>
+              </div>
+              <div class="insight-row-item" style="padding-bottom: 0.25rem; display: flex; align-items: baseline;">
+                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">👁️ Fatigue Scan:</span>
+                <span id="insight-fatigue-val" style="color: var(--text-muted);">--</span>
+              </div>
+            </div>
+          </div>
+
           <!-- 4-GRID CHART CANVAS (Matching screenshots) -->
           <div class="reports-grid-4">
             <!-- 1. Heart Rate Trends -->
@@ -644,6 +1107,58 @@
                 <span>Save Profile Changes</span>
               </button>
             </form>
+
+            <!-- Telegram Connection Section -->
+            <div class="telegram-connection-section mt-2 border-top-line pt-2">
+              <h3 class="form-label" style="font-size: 1.1rem; color: var(--accent-cyan); display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+                <span>Telegram Integration</span>
+              </h3>
+              <p class="metric-sub mb-1" style="margin-bottom: 1rem;">Receive daily recovery cards right inside your Telegram chat.</p>
+
+              <div id="telegram-disconnected-ui">
+                <button type="button" class="btn-primary" id="telegram-connect-btn" style="background-color: #0088cc; display: inline-flex; align-items: center; gap: 0.5rem; border: none; padding: 0.6rem 1.25rem;">
+                  <i class="fa-brands fa-telegram"></i> <span>Connect to Telegram</span>
+                </button>
+                <a href="https://t.me/biosync_robot" target="_blank">
+                  <button type="button" class="btn-primary" id="telegram-open-btn" style="background-color: #0088cc; display: inline-flex; align-items: center; gap: 0.5rem; border: none; padding: 0.6rem 1.25rem;">
+                    <i class="fa-brands fa-telegram"></i> <span>Open in Telegram</span>
+                  </button>
+                </a>
+              </div>
+
+              <div id="telegram-pin-ui" class="hidden mt-1">
+                <div class="glass-panel" style="background: rgba(0, 136, 204, 0.05); border-color: rgba(0, 136, 204, 0.25); text-align: center; padding: 1.25rem; border-radius: 0.75rem;">
+                  <div class="connection-help-text" style="font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-dark);">
+                    Your temporary 6-digit authentication PIN:
+                  </div>
+                  <div class="telegram-pin-box" id="telegram-pin-display" style="font-size: 2.25rem; font-weight: bold; letter-spacing: 0.1em; color: var(--accent-cyan); margin-bottom: 0.75rem;">
+                    --- ---
+                  </div>
+                  <div class="connection-help-text" style="font-size: 0.85rem; line-height: 1.45; max-width: 480px; margin: 0 auto 1.25rem; color: var(--text-muted);">
+                    1. Open Telegram and search for <b>@biosync_robot</b> (or click the link below)<br>
+                    2. Hit <b>/start</b><br>
+                    3. Send the PIN code shown above
+                  </div>
+                  <div style="display: flex; gap: 0.75rem; justify-content: center;">
+                    <a href="https://t.me/biosync_robot" id="telegram-bot-link" target="_blank" class="btn-primary" style="background-color: #0088cc; font-size: 0.85rem; padding: 0.5rem 1.25rem; text-decoration: none; border-radius: 0.35rem; display: inline-flex; align-items: center;">
+                      Open @biosync_robot
+                    </a>
+                    <button type="button" class="btn-secondary" id="telegram-cancel-pin-btn" style="font-size: 0.85rem; padding: 0.5rem 1.25rem; border-radius: 0.35rem;">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="telegram-connected-ui" class="hidden mt-1">
+                <div class="badge badge-green" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; font-size: 0.9rem;">
+                  <span>✅ Connected to Telegram</span>
+                </div>
+                <p class="metric-sub mt-1" style="font-size: 0.8rem; margin-top: 0.5rem;">
+                  Your account is successfully linked. When you submit a biometric session on the Analysis page, a summary card will be sent to your Telegram account.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -750,56 +1265,163 @@
   <!-- Main Application Script -->
   <script src="/js/app.js"></script>
 
-  <!-- Telemetry ingestion background checkers -->
   <script>
-    setInterval(() => {
-      if (state.token && state.activeView === 'analysis') {
-        const hrBadge = document.getElementById('analysis-hr-badge');
-        const hrDetails = document.getElementById('analysis-hr-details');
-        const fatigueBadge = document.getElementById('analysis-fatigue-badge');
-        const fatigueDetails = document.getElementById('analysis-fatigue-details');
-        const manualBadge = document.getElementById('analysis-manual-badge');
-        const manualDetails = document.getElementById('analysis-manual-details');
-        
-        const previewBox = document.getElementById('analysis-img-preview-box');
-        const previewImg = document.getElementById('analysis-snapshot-preview');
+document.addEventListener('DOMContentLoaded', () => {
+  // Elements
+  const disconnectedUi = document.getElementById('telegram-disconnected-ui');
+  const pinUi = document.getElementById('telegram-pin-ui');
+  const connectedUi = document.getElementById('telegram-connected-ui');
+  
+  const connectBtn = document.getElementById('telegram-connect-btn');
+  const cancelBtn = document.getElementById('telegram-cancel-pin-btn');
+  const pinDisplay = document.getElementById('telegram-pin-display');
 
-        const stepsVal = document.getElementById('steps-slider').value;
-        const activeVal = document.getElementById('active-slider').value;
-        const waterCups = document.getElementById('water-cups-slider').value;
-        
-        // HR Badge
-        if (state.heartRate) {
-          hrBadge.textContent = 'Connected';
-          hrBadge.className = 'status-badge-pill success';
-          hrDetails.innerHTML = `Heart Rate: ${state.heartRate} bpm | Steps: ${Number(stepsVal).toLocaleString()}<br>Active: ${activeVal} min`;
-        } else {
-          hrBadge.textContent = 'Disconnected';
-          hrBadge.className = 'status-badge-pill warning';
-          hrDetails.innerHTML = 'Heart Rate: -- bpm | Steps: --<br>Active: -- min';
-        }
+  // Helper function to handle UI switching
+  function showUiState(state) {
+    disconnectedUi.classList.add('hidden');
+    pinUi.classList.add('hidden');
+    connectedUi.classList.add('hidden');
 
-        // Fatigue Badge
-        if (state.capturedSnapshot) {
-          fatigueBadge.textContent = 'Captured';
-          fatigueBadge.className = 'status-badge-pill success';
-          fatigueDetails.innerHTML = `Fatigue: ${state.fatigueScore}/10 | Blink Rate: ${state.blinkFrequency}<br>Expression: Focused`;
-          
-          previewBox.style.display = 'block';
-          previewImg.src = state.capturedSnapshot;
-        } else {
-          fatigueBadge.textContent = 'Offline';
-          fatigueBadge.className = 'status-badge-pill warning';
-          fatigueDetails.innerHTML = 'Fatigue: -- | Blink Rate: --<br>Expression: --';
-          previewBox.style.display = 'none';
-        }
+    if (state === 'disconnected') disconnectedUi.classList.remove('hidden');
+    if (state === 'pin') pinUi.classList.remove('hidden');
+    if (state === 'connected') connectedUi.classList.remove('hidden');
+  }
 
-        // Manual Input badge
-        manualBadge.textContent = 'Completed';
-        manualBadge.className = 'status-badge-pill success';
-        manualDetails.innerHTML = `Sleep: ${document.getElementById('sleep-slider').value}h | Stress: ${document.getElementById('stress-slider').value}/10<br>Water: ${waterCups}/8 cups`;
+  // 1. Check if user is already connected on page load
+  async function checkInitialConnection() {
+    try {
+      const response = await fetch('/api/profile/telegram');
+      const data = await response.json();
+      
+      if (data.isConnected) {
+        showUiState('connected');
+      } else {
+        showUiState('disconnected');
       }
-    }, 1000);
-  </script>
+    } catch (err) {
+      console.error("Failed to fetch initial Telegram status:", err);
+      showUiState('disconnected'); 
+    }
+  }
+
+  // 2. Connect Button Click Handler (Fetch PIN from Backend)
+  connectBtn.addEventListener('click', async () => {
+    pinDisplay.textContent = "● ● ● ● ● ●";
+    showUiState('pin');
+
+    try {
+      const response = await fetch('/api/auth/telegram-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+
+      if (data.pin) {
+        const formattedPin = String(data.pin).replace(/(\d{3})(\d{3})/, '$1 $2');
+        pinDisplay.textContent = formattedPin;
+        startPinPolling();
+      } else {
+        alert("Could not generate a connection PIN. Try again.");
+        showUiState('disconnected');
+      }
+    } catch (err) {
+      console.error("Error generating PIN:", err);
+      alert("Network error trying to contact connection server.");
+      showUiState('disconnected');
+    }
+  });
+
+  // 3. Cancel Button Handler
+  cancelBtn.addEventListener('click', () => {
+    stopPinPolling();
+    showUiState('disconnected');
+  });
+
+  // 4. Polling Mechanism
+  let pollingInterval = null;
+
+  function startPinPolling() {
+    if (pollingInterval) clearInterval(pollingInterval);
+
+    pollingInterval = setInterval(async () => {
+      try {
+        const response = await fetch('/api/auth/telegram-check');
+        const data = await response.json();
+
+        if (data.isSuccess) {
+          stopPinPolling();
+          showUiState('connected');
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    }, 4000); 
+
+    setTimeout(() => stopPinPolling(), 300000);
+  }
+
+  function stopPinPolling() {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
+  }
+
+  // Initialize page configuration
+  checkInitialConnection();
+
+  // 5. Analysis View Telemetry Loop (Moved INSIDE DOMContentLoaded)
+  setInterval(() => {
+    // Check if 'state' object exists globally in your other files
+    if (typeof state !== 'undefined' && state.token && state.activeView === 'analysis') {
+      const hrBadge = document.getElementById('analysis-hr-badge');
+      const hrDetails = document.getElementById('analysis-hr-details');
+      const fatigueBadge = document.getElementById('analysis-fatigue-badge');
+      const fatigueDetails = document.getElementById('analysis-fatigue-details');
+      const manualBadge = document.getElementById('analysis-manual-badge');
+      const manualDetails = document.getElementById('analysis-manual-details');
+      
+      const previewBox = document.getElementById('analysis-img-preview-box');
+      const previewImg = document.getElementById('analysis-snapshot-preview');
+
+      const stepsVal = document.getElementById('steps-slider').value;
+      const activeVal = document.getElementById('active-slider').value;
+      const waterCups = document.getElementById('water-cups-slider').value;
+      
+      // HR Badge
+      if (state.heartRate) {
+        hrBadge.textContent = 'Connected';
+        hrBadge.className = 'status-badge-pill success';
+        hrDetails.innerHTML = `Heart Rate: ${state.heartRate} bpm | Steps: ${Number(stepsVal).toLocaleString()}<br>Active: ${activeVal} min`;
+      } else {
+        hrBadge.textContent = 'Disconnected';
+        hrBadge.className = 'status-badge-pill warning';
+        hrDetails.innerHTML = 'Heart Rate: -- bpm | Steps: --<br>Active: -- min';
+      }
+
+      // Fatigue Badge
+      if (state.capturedSnapshot) {
+        fatigueBadge.textContent = 'Captured';
+        fatigueBadge.className = 'status-badge-pill success';
+        fatigueDetails.innerHTML = `Fatigue: ${state.fatigueScore}/10 | Blink Rate: ${state.blinkFrequency}<br>Expression: Focused`;
+        
+        previewBox.style.display = 'block';
+        previewImg.src = state.capturedSnapshot;
+      } else {
+        fatigueBadge.textContent = 'Offline';
+        fatigueBadge.className = 'status-badge-pill warning';
+        fatigueDetails.innerHTML = 'Fatigue: -- | Blink Rate: --<br>Expression: --';
+        previewBox.style.display = 'none';
+      }
+
+      // Manual Input badge
+      manualBadge.textContent = 'Completed';
+      manualBadge.className = 'status-badge-pill success';
+      manualDetails.innerHTML = `Sleep: ${document.getElementById('sleep-slider').value}h | Stress: ${document.getElementById('stress-slider').value}/10<br>Water: ${waterCups}/8 cups`;
+    }
+  }, 1000);
+
+});
+</script>
 </body>
 </html>

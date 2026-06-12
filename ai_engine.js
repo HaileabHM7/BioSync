@@ -14,20 +14,27 @@ dotenv.config();
  * @returns {Promise<{ nudge: string, targetHobby: string, assessment: string }>}
  */
 async function analyzeStateAndGenerateNudge(data) {
-  const { heartRate, sleepHours, waterMl, stressLevel, fatigueScore, hobbies = [], wellnessGoals = [] } = data;
+  const { heartRate, sleepHours, waterMl, stressLevel, fatigueScore, fatigueBlinkRate, faceSnapshotUrl, hobbies = [], wellnessGoals = [] } = data;
   const apiKey = process.env.GEMINI_API_KEY;
 
   const hobbyList = hobbies.length > 0 ? hobbies.join(', ') : 'general stretching, listening to music';
   const goalList = wellnessGoals.length > 0 ? wellnessGoals.join(', ') : 'improve general wellness';
 
   // Construct the prompt
-  const systemPrompt = `You are the BioSync AI Context Engine, a smart wellness guide. You analyze daily biometrics and context to return a single-sentence behavioral nudge and a short 2-3 sentence clinical-style assessment.
+  const systemPrompt = `You are the BioSync AI Context Engine, a smart wellness guide. You analyze daily biometrics, lifestyle context, and a webcam face image to return a single-sentence behavioral nudge, a short clinical-style assessment, and category-specific insights.
 You must align recommendations with the user's hobbies (${hobbyList}) and wellness goals (${goalList}).
-Your response MUST be JSON format with exactly three fields:
+Your response MUST be JSON format with exactly the following structure:
 {
   "nudge": "A single-sentence, highly personalized, active behavioral nudge based on their state and one of their hobbies. Keep it short, actionable, and engaging.",
   "targetHobby": "The specific hobby from the list that this nudge utilizes.",
-  "assessment": "A 2-3 sentence overview of their biometric state (e.g., discussing high heart rate, fatigue levels, dehydration) and the physiological rationale for the suggestion."
+  "assessment": "A 2-3 sentence overview of their biometric state and the physiological rationale for the suggestion.",
+  "insights": {
+    "sleep": "A concise insight and actionable advice about their sleep quality based on sleep hours.",
+    "hydration": "A concise insight and actionable advice about their hydration state based on water intake.",
+    "stress": "A concise insight and actionable advice about their stress level.",
+    "heartRate": "A concise insight and actionable advice about their heart rate telemetry.",
+    "fatigue": "A concise insight and actionable advice about their facial fatigue scan (droopiness, tension, blink rate, etc.)."
+  }
 }`;
 
   const userPrompt = `Biometrics & Context Input:
@@ -36,15 +43,31 @@ Your response MUST be JSON format with exactly three fields:
 - Water Intake: ${waterMl} ml
 - Stress Level: ${stressLevel}/10
 - Webcam Fatigue Score: ${fatigueScore}/10
+- Webcam Blink Rate: ${fatigueBlinkRate || 16} blinks/min
 
 Hobby Options: [${hobbyList}]
 Wellness Goals: [${goalList}]
 
-Please generate the JSON response.`;
+Please analyze the data (and the accompanying face snapshot image if available) and generate the JSON response.`;
 
   if (apiKey && apiKey !== 'YOUR_GEMINI_API_KEY_HERE') {
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      
+      const parts = [];
+      parts.push({ text: `${systemPrompt}\n\n${userPrompt}` });
+
+      if (faceSnapshotUrl && faceSnapshotUrl.startsWith('data:image/')) {
+        const base64Data = faceSnapshotUrl.split(',')[1];
+        const mimeType = faceSnapshotUrl.split(';')[0].split(':')[1];
+        parts.push({
+          inlineData: {
+            mimeType: mimeType,
+            data: base64Data
+          }
+        });
+      }
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -52,9 +75,7 @@ Please generate the JSON response.`;
         },
         body: JSON.stringify({
           contents: [{
-            parts: [{
-              text: `${systemPrompt}\n\n${userPrompt}`
-            }]
+            parts: parts
           }],
           generationConfig: {
             responseMimeType: "application/json",
@@ -80,7 +101,14 @@ Please generate the JSON response.`;
         return {
           nudge: parsed.nudge,
           targetHobby: parsed.targetHobby || (hobbies[0] || 'general rest'),
-          assessment: parsed.assessment
+          assessment: parsed.assessment,
+          insights: parsed.insights || {
+            sleep: "Focus on maintaining regular sleep hours.",
+            hydration: "Drink water consistently throughout the day.",
+            stress: "Incorporate minor breathing pauses.",
+            heartRate: "Monitor telemetry values during rest.",
+            fatigue: "Ocular metrics are stable."
+          }
         };
       }
     } catch (err) {
@@ -93,7 +121,7 @@ Please generate the JSON response.`;
 }
 
 function generateDeterministicNudge(data, hobbies, wellnessGoals) {
-  const { heartRate, sleepHours, waterMl, stressLevel, fatigueScore } = data;
+  const { heartRate, sleepHours, waterMl, stressLevel, fatigueScore, fatigueBlinkRate } = data;
   
   // Select main hobby to target
   const primaryHobby = hobbies[0] || 'general stretching';
@@ -108,14 +136,14 @@ function generateDeterministicNudge(data, hobbies, wellnessGoals) {
   const isSleepDeprived = sleepHours < 6.5;
   const isStressed = stressLevel >= 7;
   const isHeartHigh = heartRate > 100;
-  const isFatigued = fatigueScore >= 6;
+  const isFatigued = fatigueScore >= 60; // fatigueScore is percentage (0-100)
 
   // Generate assessment based on numbers
   assessment = `Your biometrics indicate `;
   const stateConditions = [];
   if (isHeartHigh) stateConditions.push(`an elevated pulse of ${heartRate} BPM`);
   if (isStressed) stateConditions.push(`high subjective stress levels (${stressLevel}/10)`);
-  if (isFatigued) stateConditions.push(`noticeable facial fatigue indicators (score: ${fatigueScore}/10)`);
+  if (isFatigued) stateConditions.push(`noticeable facial fatigue indicators (score: ${fatigueScore}%)`);
   if (isSleepDeprived) stateConditions.push(`sleep deficit (${sleepHours}h slept)`);
   if (isDehydrated) stateConditions.push(`insufficient hydration (${waterMl}ml)`);
 
@@ -198,7 +226,25 @@ function generateDeterministicNudge(data, hobbies, wellnessGoals) {
     nudge += ` Remember to drink a large glass of water right now to replenish your fluid levels.`;
   }
 
-  return { nudge, targetHobby, assessment };
+  const insights = {
+    sleep: isSleepDeprived
+      ? `You slept only ${sleepHours} hours. This sleep deficit limits cell repair and brain glycogen replenishment. Go to bed earlier tonight.`
+      : `Healthy sleep duration of ${sleepHours} hours detected. This supports consolidation of memories and physical muscle restoration.`,
+    hydration: isDehydrated
+      ? `Dehydration warning: only ${waterMl}ml logged. Low water intake increases blood viscosity. Drink a full glass of water immediately.`
+      : `Excellent hydration level at ${waterMl}ml. Proper cellular volume allows smooth nutrient delivery and optimal core temperature control.`,
+    stress: isStressed
+      ? `High autonomic stress level (${stressLevel}/10). Cortisol levels are likely elevated. Try a 2-minute breathing reset to balance your nervous system.`
+      : `Your stress score is a balanced ${stressLevel}/10. High HRV and stable biomarkers indicate good physiological resilience today.`,
+    heartRate: isHeartHigh
+      ? `Elevated heart rate (${heartRate} BPM) detected. This places additional load on your cardiac muscles. Take a break and rest.`
+      : `Your heart rate is in a balanced resting zone of ${heartRate} BPM. Your heart muscle is performing efficiently with minimal strain.`,
+    fatigue: isFatigued
+      ? `Noticeable facial fatigue scan results (${fatigueScore}%) and blink frequency (${fatigueBlinkRate || 16} blinks/min). Rest your eyes from blue light.`
+      : `Low ocular fatigue indicator (${fatigueScore}%). Blink frequency is stable. Ocular tissues are well lubricated and alert.`
+  };
+
+  return { nudge, targetHobby, assessment, insights };
 }
 
 module.exports = {

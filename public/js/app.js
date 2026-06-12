@@ -55,6 +55,7 @@ const profileSelectedHobbies = new Set();
 
 // --- ROUTER ---
 const routes = {
+  'landing': { requireAuth: false },
   'login': { requireAuth: false },
   'signup': { requireAuth: false },
   'dashboard': { requireAuth: true },
@@ -121,7 +122,8 @@ function navigateTo(viewId) {
   }
 
   // Close dropdowns
-  document.getElementById('profile-dropdown-menu').classList.remove('show');
+  const dropdown = document.getElementById('profile-dropdown-menu');
+  if (dropdown) dropdown.classList.remove('show');
 }
 
 function updateSidebarVisibility(visible) {
@@ -166,8 +168,17 @@ window.addEventListener('load', async () => {
   if (hash && routes[hash]) {
     navigateTo(hash);
   } else {
-    navigateTo(state.token ? 'dashboard' : 'login');
+    navigateTo(state.token ? 'dashboard' : 'landing');
   }
+
+  // Set language preference on start
+  const storedLang = localStorage.getItem('biosync_lang') || 'en';
+  state.lang = storedLang;
+  const langBtn = document.getElementById('lang-selector-btn');
+  if (langBtn) {
+    langBtn.textContent = storedLang === 'en' ? 'EN' : 'አ';
+  }
+  applyLanguage(storedLang);
 });
 
 window.addEventListener('hashchange', () => {
@@ -386,16 +397,21 @@ function setupEventListeners() {
   // Profile dropdown menu toggle
   const profileMenuBtn = document.getElementById('header-profile-menu-btn');
   const dropdownMenu = document.getElementById('profile-dropdown-menu');
-  profileMenuBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdownMenu.classList.toggle('show');
-  });
+  if (profileMenuBtn && dropdownMenu) {
+    profileMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('show');
+    });
 
-  document.addEventListener('click', () => {
-    dropdownMenu.classList.remove('show');
-  });
+    document.addEventListener('click', () => {
+      dropdownMenu.classList.remove('show');
+    });
+  }
 
-  document.getElementById('dropdown-logout-btn').addEventListener('click', logout);
+  const dropdownLogoutBtn = document.getElementById('dropdown-logout-btn');
+  if (dropdownLogoutBtn) {
+    dropdownLogoutBtn.addEventListener('click', logout);
+  }
 
   // Sidebar logout button
   const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
@@ -419,6 +435,8 @@ function setupEventListeners() {
         langMenu.classList.remove('show');
         // Store language preference
         localStorage.setItem('biosync_lang', lang);
+        state.lang = lang;
+        applyLanguage(lang);
       });
     });
 
@@ -427,12 +445,22 @@ function setupEventListeners() {
     });
   }
 
-  // Account settings button (already handled by data-view)
-  // The sidebar-btn with data-view="profile" will be handled by the navigation listener above
-
   // Authentication Forms
   document.getElementById('login-form').addEventListener('submit', handleLoginSubmit);
   document.getElementById('signup-form').addEventListener('submit', handleSignupSubmit);
+
+  // Onboarding Wizard bindings
+  bindWizardEvents();
+
+  // Telegram Link binds
+  const telegramConnectBtn = document.getElementById('telegram-connect-btn');
+  if (telegramConnectBtn) {
+    telegramConnectBtn.addEventListener('click', generateTelegramPin);
+  }
+  const telegramCancelPinBtn = document.getElementById('telegram-cancel-pin-btn');
+  if (telegramCancelPinBtn) {
+    telegramCancelPinBtn.addEventListener('click', cancelTelegramPinGeneration);
+  }
 
   // Bluetooth Pairing
   document.getElementById('ble-pair-btn').addEventListener('click', connectSmartwatch);
@@ -501,7 +529,7 @@ function setupEventListeners() {
   // Onboarding switcher links
   document.getElementById('to-signup-link').addEventListener('click', (e) => {
     e.preventDefault();
-    initGoalHobbySelectors();
+    initOnboardingWizard();
     navigateTo('signup');
   });
 
@@ -554,11 +582,25 @@ async function handleSignupSubmit(e) {
 
   errorEl.classList.add('hidden');
 
-  if (selectedGoals.size === 0 || selectedHobbies.size === 0) {
-    errorEl.textContent = 'Please select at least one wellness goal and one hobby.';
-    errorEl.classList.remove('hidden');
-    return;
+  // Validate Step 3 questions (Q6 to Q10)
+  for (let i = 6; i <= 10; i++) {
+    const question = document.querySelector(`.wizard-question[data-qid="q${i}"]`);
+    const selected = question.querySelectorAll('.selection-card.selected');
+    if (selected.length === 0) {
+      errorEl.textContent = `Please answer question ${i} before creating your account.`;
+      errorEl.classList.remove('hidden');
+      return;
+    }
   }
+
+  // Collect answers
+  const onboardingAnswers = {};
+  document.querySelectorAll('.wizard-question').forEach(q => {
+    const qid = q.dataset.qid;
+    const type = q.dataset.type;
+    const selected = Array.from(q.querySelectorAll('.selection-card.selected')).map(el => el.dataset.val);
+    onboardingAnswers[qid] = type === 'single' ? (selected[0] || '') : selected;
+  });
 
   try {
     const res = await fetch('/api/auth/signup', {
@@ -567,8 +609,7 @@ async function handleSignupSubmit(e) {
       body: JSON.stringify({
         email,
         password,
-        wellnessGoals: Array.from(selectedGoals),
-        hobbies: Array.from(selectedHobbies)
+        onboardingAnswers
       })
     });
     const data = await res.json();
@@ -703,6 +744,9 @@ function loadProfileSettingsPage() {
     });
     hobbiesGrid.appendChild(card);
   });
+
+  // Fetch Telegram link status
+  fetchTelegramLinkingStatus();
 }
 
 async function handleProfileUpdateSubmit(e) {
@@ -1124,18 +1168,64 @@ function loadDashboard() {
         nudgeBanner.style.borderLeftColor = 'var(--sidebar-active)';
       }
     }
+    // Render dashboard charts with database sessions
+    renderDashboardCharts(sessions);
   })
-  .catch(err => console.error('Error loading dashboard stats:', err));
-
-  // Render dashboard charts
-  renderDashboardCharts();
+  .catch(err => {
+    console.error('Error loading dashboard stats:', err);
+    renderDashboardCharts([]);
+  });
 }
 
-function renderDashboardCharts() {
-  // Sample data for charts
-  const heartRateData = [65, 68, 70, 72, 71, 69, 72, 75, 73, 72, 71, 70];
-  const activityData = [2500, 4250, 3800, 5200, 4100, 3500, 2900];
-  const sleepData = [7, 6.5, 8, 7.5, 7, 6, 8.5];
+function renderDashboardCharts(sessions = []) {
+  // Extract real telemetry from sessions history
+  let heartRateData = [65, 68, 70, 72, 71, 69, 72, 75, 73, 72, 71, 70];
+  let heartRateLabels = ['12:00', '1:00', '2:00', '3:00', '4:00', '5:00', '6:00', '7:00', '8:00', '9:00', '10:00', '11:00'];
+  let activityData = [2500, 4250, 3800, 5200, 4100, 3500, 2900];
+  let activityLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  let sleepData = [7, 6.5, 8, 7.5, 7, 6, 8.5];
+  let sleepLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  
+  let weeklyData = [85, 65, 75, 70, 80, 72];
+
+  if (sessions.length > 0) {
+    // Map last 12 sessions for heart rate trends
+    const last12 = sessions.slice(-12);
+    heartRateData = last12.map(s => s.heart_rate);
+    heartRateLabels = last12.map(s => {
+      const d = new Date(s.created_at);
+      return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+    });
+
+    // Map last 7 sessions for activity & sleep
+    const last7 = sessions.slice(-7);
+    activityData = last7.map(s => s.steps || 0);
+    activityLabels = last7.map((s, idx) => `S-${idx + 1}`);
+    
+    sleepData = last7.map(s => s.sleep_hours);
+    sleepLabels = last7.map((s, idx) => `S-${idx + 1}`);
+
+    // Calculate weekly health score metrics
+    const avgHr = sessions.reduce((sum, s) => sum + s.heart_rate, 0) / sessions.length;
+    const cardioScore = Math.max(10, Math.min(100, Math.round(100 - Math.abs(avgHr - 70) * 1.5)));
+
+    const avgSteps = sessions.reduce((sum, s) => sum + (s.steps || 0), 0) / sessions.length;
+    const stepsScore = Math.max(10, Math.min(100, Math.round((avgSteps / 10000) * 100)));
+
+    const avgSleep = sessions.reduce((sum, s) => sum + s.sleep_hours, 0) / sessions.length;
+    const sleepScore = Math.max(10, Math.min(100, Math.round((avgSleep / 8) * 100)));
+
+    const avgWater = sessions.reduce((sum, s) => sum + s.water_ml, 0) / sessions.length;
+    const hydrationScore = Math.max(10, Math.min(100, Math.round((avgWater / 2000) * 100)));
+
+    const avgStress = sessions.reduce((sum, s) => sum + s.stress_level, 0) / sessions.length;
+    const stressScore = Math.max(10, Math.min(100, Math.round(100 - (avgStress * 9))));
+
+    const avgFatigue = sessions.reduce((sum, s) => sum + s.fatigue_score, 0) / sessions.length;
+    const recoveryScore = Math.round((sleepScore + stressScore + (100 - avgFatigue)) / 3);
+
+    weeklyData = [cardioScore, stepsScore, sleepScore, hydrationScore, stressScore, recoveryScore];
+  }
   
   const ctx1 = document.getElementById('dash-chart-heart-rate');
   if (ctx1 && !window.dashCharts) window.dashCharts = {};
@@ -1144,7 +1234,7 @@ function renderDashboardCharts() {
     window.dashCharts.heartRate = new Chart(ctx1, {
       type: 'line',
       data: {
-        labels: ['12:00', '1:00', '2:00', '3:00', '4:00', '5:00', '6:00', '7:00', '8:00', '9:00', '10:00', '11:00'],
+        labels: heartRateLabels,
         datasets: [{
           label: 'Heart Rate (bpm)',
           data: heartRateData,
@@ -1183,7 +1273,7 @@ function renderDashboardCharts() {
     window.dashCharts.activity = new Chart(ctx2, {
       type: 'bar',
       data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels: activityLabels,
         datasets: [{
           label: 'Steps',
           data: activityData,
@@ -1217,7 +1307,7 @@ function renderDashboardCharts() {
     window.dashCharts.sleep = new Chart(ctx3, {
       type: 'line',
       data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels: sleepLabels,
         datasets: [{
           label: 'Sleep Hours',
           data: sleepData,
@@ -1256,7 +1346,7 @@ function renderDashboardCharts() {
         labels: ['Cardio', 'Steps', 'Sleep', 'Hydration', 'Stress', 'Recovery'],
         datasets: [{
           label: 'Weekly Score',
-          data: [85, 65, 75, 70, 80, 72],
+          data: weeklyData,
           borderColor: '#4f46e5',
           backgroundColor: 'rgba(79, 70, 229, 0.2)',
           borderWidth: 2
@@ -1326,6 +1416,7 @@ async function submitSessionAnalysis() {
     state.latestReport = {
       nudge: data.nudge,
       assessment: data.assessment,
+      insights: data.insights,
       hobbyTargeted: data.hobbyTargeted,
       anomalies: data.anomalies
     };
@@ -1344,6 +1435,7 @@ async function loadReportPage() {
   const nudgeTextEl = document.getElementById('report-nudge-text');
   const nudgeTagEl = document.getElementById('report-nudge-tag');
   const assessTextEl = document.getElementById('report-assess-text');
+  const insightsContainer = document.getElementById('report-insights-container');
 
   // Load history to build graphs & weekly summary list
   try {
@@ -1357,10 +1449,22 @@ async function loadReportPage() {
       
       // If we don't have latestReport in memory (e.g. reload or just logged in), load from latest DB row
       if (!state.latestReport && latest.nudge_text) {
+        let parsedAssess = latest.assessment_text || '';
+        let parsedInsights = null;
+        if (parsedAssess.startsWith('{')) {
+          try {
+            const parsedObj = JSON.parse(parsedAssess);
+            parsedAssess = parsedObj.assessment;
+            parsedInsights = parsedObj.insights;
+          } catch (e) {
+            console.error('Failed to parse assessment JSON:', e);
+          }
+        }
         state.latestReport = {
           nudge: latest.nudge_text,
           hobbyTargeted: latest.hobby_targeted,
-          assessment: latest.assessment_text || 'Autonomic biometric recovery metrics verified.'
+          assessment: parsedAssess,
+          insights: parsedInsights
         };
       }
 
@@ -1372,9 +1476,21 @@ async function loadReportPage() {
       nudgeTextEl.textContent = `"${state.latestReport.nudge}"`;
       nudgeTagEl.textContent = `AI Insights: ${state.latestReport.hobbyTargeted}`;
       assessTextEl.innerHTML = `AI Analysis: ${state.latestReport.assessment}`;
+
+      if (state.latestReport.insights) {
+        insightsContainer.classList.remove('hidden');
+        document.getElementById('insight-sleep-val').textContent = state.latestReport.insights.sleep || '--';
+        document.getElementById('insight-hydration-val').textContent = state.latestReport.insights.hydration || '--';
+        document.getElementById('insight-stress-val').textContent = state.latestReport.insights.stress || '--';
+        document.getElementById('insight-heartrate-val').textContent = state.latestReport.insights.heartRate || '--';
+        document.getElementById('insight-fatigue-val').textContent = state.latestReport.insights.fatigue || '--';
+      } else {
+        insightsContainer.classList.add('hidden');
+      }
     } else {
       nudgeTextEl.textContent = "No analysis submitted yet. Ingest your biometrics to synchronize.";
       assessTextEl.textContent = "Navigate to the Analysis tab to run your daily session analysis and receive AI-powered insights.";
+      insightsContainer.classList.add('hidden');
     }
 
   } catch (err) {
@@ -1761,3 +1877,418 @@ async function submitAdminSettings(e) {
     statusEl.style.color = 'var(--accent-pink)';
   }
 }
+
+// --- ONBOARDING WIZARD ---
+let wizardCurrentStep = 1;
+
+function initOnboardingWizard() {
+  wizardCurrentStep = 1;
+  updateWizardUI();
+  
+  // Clear any previous selections
+  document.querySelectorAll('.wizard-question .selection-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+  const form = document.getElementById('signup-form');
+  if (form) form.reset();
+  const errorEl = document.getElementById('signup-error');
+  if (errorEl) errorEl.classList.add('hidden');
+}
+
+function updateWizardUI() {
+  document.querySelectorAll('.wizard-step').forEach(step => step.classList.add('hidden'));
+  const activeStep = document.getElementById(`wizard-step-${wizardCurrentStep}`);
+  if (activeStep) activeStep.classList.remove('hidden');
+
+  // Update progress bar
+  const bar = document.getElementById('signup-progress-bar');
+  if (bar) {
+    const pct = (wizardCurrentStep / 3) * 100;
+    bar.style.width = `${pct}%`;
+  }
+  
+  const stepIndicator = document.getElementById('current-step-num');
+  if (stepIndicator) stepIndicator.textContent = wizardCurrentStep;
+
+  // Show/Hide buttons
+  const prevBtn = document.getElementById('signup-prev-btn');
+  const nextBtn = document.getElementById('signup-next-btn');
+  const submitBtn = document.getElementById('signup-submit-btn');
+
+  if (wizardCurrentStep === 1) {
+    if (prevBtn) prevBtn.classList.add('hidden');
+    if (nextBtn) nextBtn.classList.remove('hidden');
+    if (submitBtn) submitBtn.classList.add('hidden');
+  } else if (wizardCurrentStep === 2) {
+    if (prevBtn) prevBtn.classList.remove('hidden');
+    if (nextBtn) nextBtn.classList.remove('hidden');
+    if (submitBtn) submitBtn.classList.add('hidden');
+  } else if (wizardCurrentStep === 3) {
+    if (prevBtn) prevBtn.classList.remove('hidden');
+    if (nextBtn) nextBtn.classList.add('hidden');
+    if (submitBtn) submitBtn.classList.remove('hidden');
+  }
+
+  // Re-apply language translations to the wizard UI
+  applyLanguage(state.lang || 'en');
+}
+
+function validateWizardStep(step) {
+  const errorEl = document.getElementById('signup-error');
+  if (errorEl) errorEl.classList.add('hidden');
+
+  if (step === 1) {
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    if (!email || !password) {
+      if (errorEl) {
+        errorEl.textContent = 'Please enter both email and password.';
+        errorEl.classList.remove('hidden');
+      }
+      return false;
+    }
+    if (!email.includes('@')) {
+      if (errorEl) {
+        errorEl.textContent = 'Please enter a valid email address.';
+        errorEl.classList.remove('hidden');
+      }
+      return false;
+    }
+    return true;
+  } else if (step === 2) {
+    // Check Q1 to Q5
+    for (let i = 1; i <= 5; i++) {
+      const question = document.querySelector(`.wizard-question[data-qid="q${i}"]`);
+      const selected = question.querySelectorAll('.selection-card.selected');
+      if (selected.length === 0) {
+        if (errorEl) {
+          errorEl.textContent = `Please answer question ${i} before proceeding.`;
+          errorEl.classList.remove('hidden');
+        }
+        return false;
+      }
+    }
+    return true;
+  }
+  return true;
+}
+
+function bindWizardEvents() {
+  document.querySelectorAll('.wizard-question').forEach(question => {
+    const type = question.dataset.type;
+    const max = parseInt(question.dataset.max || '1');
+    
+    question.querySelectorAll('.selection-card').forEach(card => {
+      card.addEventListener('click', () => {
+        if (type === 'single') {
+          question.querySelectorAll('.selection-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+        } else {
+          // Multi-select
+          if (card.classList.contains('selected')) {
+            card.classList.remove('selected');
+          } else {
+            const selectedCount = question.querySelectorAll('.selection-card.selected').length;
+            if (selectedCount < max) {
+              card.classList.add('selected');
+            } else {
+              if (max === 2) {
+                const firstSelected = question.querySelector('.selection-card.selected');
+                if (firstSelected) firstSelected.classList.remove('selected');
+                card.classList.add('selected');
+              }
+            }
+          }
+        }
+      });
+    });
+  });
+
+  const prevBtn = document.getElementById('signup-prev-btn');
+  const nextBtn = document.getElementById('signup-next-btn');
+  
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (wizardCurrentStep > 1) {
+        wizardCurrentStep--;
+        updateWizardUI();
+      }
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (validateWizardStep(wizardCurrentStep)) {
+        wizardCurrentStep++;
+        updateWizardUI();
+      }
+    });
+  }
+}
+
+// --- TELEGRAM PIN LINKING ---
+let telegramPollInterval = null;
+
+async function generateTelegramPin() {
+  if (!state.token) return;
+  try {
+    const res = await fetch('/api/telegram/generate-pin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.token}`
+      }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to generate PIN');
+
+    document.getElementById('telegram-pin-display').textContent = data.pin;
+    
+    // Set bot link
+    const pinRaw = data.pin.replace('-', '');
+    document.getElementById('telegram-bot-link').href = `https://t.me/${data.botUsername}?start=${pinRaw}`;
+
+    document.getElementById('telegram-disconnected-ui').classList.add('hidden');
+    document.getElementById('telegram-pin-ui').classList.remove('hidden');
+    document.getElementById('telegram-connected-ui').classList.add('hidden');
+
+    // Start status polling
+    startTelegramStatusPolling();
+  } catch (err) {
+    console.error('Error generating Telegram PIN:', err.message);
+  }
+}
+
+function cancelTelegramPinGeneration() {
+  stopTelegramStatusPolling();
+  document.getElementById('telegram-disconnected-ui').classList.remove('hidden');
+  document.getElementById('telegram-pin-ui').classList.add('hidden');
+  document.getElementById('telegram-connected-ui').classList.add('hidden');
+}
+
+async function fetchTelegramLinkingStatus() {
+  if (!state.token) return;
+  try {
+    const res = await fetch('/api/telegram/status', {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to get Telegram status');
+
+    if (data.connected) {
+      stopTelegramStatusPolling();
+      document.getElementById('telegram-disconnected-ui').classList.add('hidden');
+      document.getElementById('telegram-pin-ui').classList.add('hidden');
+      document.getElementById('telegram-connected-ui').classList.remove('hidden');
+    } else {
+      if (data.pin) {
+        document.getElementById('telegram-pin-display').textContent = data.pin;
+        const pinRaw = data.pin.replace('-', '');
+        document.getElementById('telegram-bot-link').href = `https://t.me/${data.botUsername}?start=${pinRaw}`;
+        
+        document.getElementById('telegram-disconnected-ui').classList.add('hidden');
+        document.getElementById('telegram-pin-ui').classList.remove('hidden');
+        document.getElementById('telegram-connected-ui').classList.add('hidden');
+        
+        startTelegramStatusPolling();
+      } else {
+        stopTelegramStatusPolling();
+        document.getElementById('telegram-disconnected-ui').classList.remove('hidden');
+        document.getElementById('telegram-pin-ui').classList.add('hidden');
+        document.getElementById('telegram-connected-ui').classList.add('hidden');
+      }
+    }
+  } catch (err) {
+    console.error('Error checking Telegram status:', err.message);
+  }
+}
+
+function startTelegramStatusPolling() {
+  if (telegramPollInterval) clearInterval(telegramPollInterval);
+  telegramPollInterval = setInterval(async () => {
+    if (!state.token || state.activeView !== 'profile') {
+      stopTelegramStatusPolling();
+      return;
+    }
+    try {
+      const res = await fetch('/api/telegram/status', {
+        headers: { 'Authorization': `Bearer ${state.token}` }
+      });
+      const data = await res.json();
+      if (data.connected) {
+        stopTelegramStatusPolling();
+        document.getElementById('telegram-disconnected-ui').classList.add('hidden');
+        document.getElementById('telegram-pin-ui').classList.add('hidden');
+        document.getElementById('telegram-connected-ui').classList.remove('hidden');
+        
+        // Show update message
+        const statusEl = document.getElementById('profile-status-message');
+        if (statusEl) {
+          statusEl.textContent = 'Telegram account connected successfully!';
+          statusEl.className = 'badge badge-green mb-1';
+          statusEl.classList.remove('hidden');
+          setTimeout(() => statusEl.classList.add('hidden'), 5000);
+        }
+      }
+    } catch (e) {
+      console.warn('Telegram status check poll error:', e.message);
+    }
+  }, 3000);
+}
+
+function stopTelegramStatusPolling() {
+  if (telegramPollInterval) {
+    clearInterval(telegramPollInterval);
+    telegramPollInterval = null;
+  }
+}
+
+// --- AMHARIC TRANSLATION SYSTEM ---
+const translations = {
+  am: {
+    // Sidebar nav
+    "Dashboard": "ዳሽቦርድ",
+    "Connection": "ግንኙነት",
+    "Webcam Scanner": "የፊት ስካነር",
+    "Analysis": "ትንተና",
+    "Reports": "ሪፖርቶች",
+    "Admin": "አድሚን",
+    "Account Settings": "የመለያ ቅንብሮች",
+    "Sign Out": "ውጣ",
+
+    // Dashboard View
+    "Welcome back, User!": "እንኳን ደህና መጡ!",
+    "Here's your health overview for today": "የዛሬው የጤናዎ አጠቃላይ እይታ",
+    "Heart Rate": "የልብ ምት",
+    "Activity Level": "የእንቅስቃሴ ደረጃ",
+    "Sleep Quality": "የእንቅልፍ ጥራት",
+    "Hydration": "የውሃ መጠን",
+    "bpm - Last 5 min avg": "ምት በደቂቃ - የ5 ደቂቃ አማካኝ",
+    "Last night average": "የሌሊት አማካኝ",
+    "cups - Daily water intake": "ኩባያዎች - ዕለታዊ የውሃ ፍጆታ",
+    "Heart Rate Trends": "የልብ ምት አዝማሚያዎች",
+    "Activity Breakdown": "የእንቅስቃሴ ዝርዝር",
+    "Sleep Patterns (7 days)": "የእንቅልፍ ሁኔታዎች (7 ቀናት)",
+    "Weekly Summary": "ሳምንታዊ ማጠቃለያ",
+    "Latest Smart Suggestion": "የቅርብ ጊዜ አስተያየት",
+    "Sync telemetry & run analysis": "ቴሌሜትሪ ያመሳስሉ እና ትንተና ያሂዱ",
+    "Connection Status": "የግንኙነት ሁኔታ",
+
+    // Connection View
+    "Smartwatch Connection": "የስማርት ሰዓት ግንኙነት",
+    "Pair your smartwatch to receive real-time biometric data": "የቀጥታ ባዮሜትሪክ መረጃን ለማግኘት ስማርት ሰዓትዎን ያገናኙ",
+    "Not Connected": "አልተገናኘም",
+    "Connected": "ተገናኝቷል",
+    "Connect Smartwatch": "ስማርት ሰዓት አገናኝ",
+    "Launch Simulator": "ሲሙሌተር አስጀምር",
+    "Disconnect Smartwatch": "ስማርት ሰዓት አቋርጥ",
+    "Device Name: BioSync Virtual Band X-1 | Telemetry Simulation Active": "የመሣሪያ ስም: ባዮሲንክ ምናባዊ ባንድ X-1 | የቴሌሜትሪ ማስመሰል ገባሪ ነው",
+
+    // Webcam Scanner View
+    "Facial Analysis Scanner": "የፊት ትንተና ስካነር",
+    "Position your face in the circle and capture for fatigue analysis": "ፊትዎን በክበቡ ውስጥ ያድርጉ እና ለድካም ትንተና ፎቶ ያንሱ",
+    "Camera Setup": "የካሜራ ማዋቀር",
+    "Start Camera": "ካሜራ አስጀምር",
+    "Capture Fatigue": "ድካምን መዝግብ",
+    "Reset Camera": "ካሜራን ዳግም አስጀምር",
+    "Analysis Results": "የትንተና ውጤቶች",
+    "Fatigue Level": "የድካም ደረጃ",
+    "Blink Rate": "የዐይን ብልጭታ መጠን",
+
+    // Ingestion Portal View
+    "Ingestion Portal": "የመረጃ ማስገቢያ ፖርታል",
+    "Aggregate smartwatch data, webcam scans, and daily metrics to submit to the AI Engine": "የስማርት ሰዓት መረጃዎችን፣ የካሜራ ቅኝቶችን እና ዕለታዊ መለኪያዎችን ለአይ ሞተር ያስገቡ",
+    "Smartwatch Data": "የስማርት ሰዓት መረጃ",
+    "Facial Scan": "የፊት ቅኝት",
+    "Manual Input": "በእጅ የሚገባ መረጃ",
+    "Daily Metrics": "ዕለታዊ መለኪያዎች",
+    "Hours Slept": "የተኙበት ሰዓት",
+    "Stress Level": "የጭንቀት ደረጃ",
+    "Steps Count": "የእርምጃዎች ብዛት",
+    "Active Minutes": "ንቁ ደቂቃዎች",
+    "Hydration (Cups)": "የውሃ መጠጣት (ኩባያዎች)",
+    "Submit & Aggregates Analysis": "ትንተናውን አስገብተው ያሂዱ",
+
+    // Reports View
+    "Autonomic nervous system recovery logs and trends": "የነርቭ ሥርዓት ማገገሚያ ምዝግብ ማስታወሻዎች እና አዝማሚያዎች",
+    "Back to Dashboard": "ወደ ዳሽቦርድ ይመለሱ",
+    "Share Report": "ሪፖርት ያጋሩ",
+    "Download PDF": "PDF ያውርዱ",
+    "Suggested AI Activity": "የተጠቆመ የአይ ተግባር",
+    "Sleep Patterns": "የእንቅልፍ ሁኔታዎች",
+    "Average Heart Rate:": "አማካኝ የልብ ምት:",
+    "Total Active Minutes:": "አጠቃላይ ንቁ ደቂቃዎች:",
+    "Average Sleep:": "አማካኝ እንቅልፍ:",
+    "Average Hydration:": "አማካኝ የውሃ መጠጣት:",
+    "Anomaly Triggers:": "ያልተለመዱ ክስተቶች:",
+    "Granular Recovery Recommendations": "ዝርዝር የማገገሚያ ምክሮች",
+
+    // Profile Settings View
+    "Profile Settings": "የመለያ ቅንብሮች",
+    "Change Password (Leave blank to keep current)": "የይለፍ ቃል ቀይር (ላለመቀየር ባዶ ይተውት)",
+    "Save Profile Changes": "ለውጦችን አስቀምጥ",
+    "Telegram Integration": "የቴሌግራም ውህደት",
+    "Connect to Telegram": "ከቴሌግራም ጋር አገናኝ",
+    "Open @biosync_robot": "ቴሌግራም ክፈት @biosync_robot",
+    "Cancel": "ሰርዝ",
+    "Your temporary 6-digit authentication PIN:": "የእርስዎ ጊዜያዊ 6 አሃዝ መለያ ፒን (PIN):",
+    "1. Open Telegram and search for @biosync_robot (or click the link below)": "1. ቴሌግራምን ይክፈቱ እና @biosync_robot ብለው ይፈልጉ (ወይም ከታች ያለውን ሊንክ ይጫኑ)",
+    "2. Hit /start": "2. /start የሚለውን ይጫኑ",
+    "3. Send the PIN code shown above": "3. ከላይ የሚታየውን የፒን ኮድ ይላኩ",
+    "Receive daily recovery cards right inside your Telegram chat.": "ዕለታዊ ማገገሚያ ካርዶችን በቀጥታ በቴሌግራም ቻትዎ ውስጥ ይቀበሉ።",
+
+    // Landing View
+    "Health is not a checklist —": "ጤና የዝርዝር ማረጋገጫ አይደለም —",
+    "it's a rhythm.": "ምት ነው!",
+    "BioSync listens to your body, learns who you are, and intelligently suggests the one thing you need right now to feel better.": "ባዮሲንክ የሰውነትዎን ምልክቶች ያዳምጣል፣ ማንነትዎን ይማራል፣ እና አሁን የተሻለ ስሜት እንዲሰማዎት የሚያስፈልገውን አንድ ነገር በጥበብ ይጠቁማል።",
+    "Join BioSync Today": " his ዛሬውኑ ባዮሲንክን ይቀላቀሉ",
+    "Learn More": "የበለጠ ይረዱ",
+    "Our Vision": "ራዕያችን",
+    "What Biosync Actually Does": "ባዮሲንክ በትክክል ምን ይሰራል?",
+    "Our Evolving Plan": "እየተሻሻለ የመጣው ዕቅዳችን",
+    "Sign In": "ግባ",
+    "Get Started": "ጀምር",
+    "Welcome to Biosync": "እንኳን ወደ ባዮሲንክ በደህና መጡ",
+    "Beyond Tracking: True Personal Understanding": "ከክትትል ባሻገር: እውነተኛ የግል ግንዛቤ",
+    "Situationally Intelligent, Moment-Ready Guidance": "ወቅታዊ ብልህ እና ዝግጁ የሆኑ ምክሮች",
+    "Every Goal, Your Terms": "ማንኛውም ግብ በእርስዎ ምርጫ",
+    
+    // Auth Forms
+    "Sign in to sync your biometrics": "ባዮሜትሪክስዎን ለማመሳሰል ይግቡ",
+    "Email Address": "የኢሜይል አድራሻ",
+    "Password": "የይለፍ ቃል",
+    "Create Account": "መለያ ፍጠር"
+  }
+};
+
+function applyLanguage(lang) {
+  const isAmharic = lang === 'am';
+  document.documentElement.lang = lang;
+  
+  const dict = translations.am;
+  if (!dict) return;
+
+  const walk = (node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.nodeValue.trim();
+      if (text) {
+        for (const [enKey, amVal] of Object.entries(dict)) {
+          if (isAmharic && text === enKey) {
+            node.nodeValue = amVal;
+            break;
+          } else if (!isAmharic && text === amVal) {
+            node.nodeValue = enKey;
+            break;
+          }
+        }
+      }
+    } else {
+      if (node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE' && node.tagName !== 'INPUT' && node.tagName !== 'TEXTAREA') {
+        node.childNodes.forEach(walk);
+      }
+    }
+  };
+
+  walk(document.body);
+}
+

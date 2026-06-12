@@ -161,6 +161,24 @@ async function runSchemaMigrations() {
       await run("ALTER TABLE ai_nudges ADD COLUMN assessment_text TEXT");
       console.log("Migration: Added column 'assessment_text' to table 'ai_nudges'");
     }
+
+    // 3. Check and add columns to 'users' table
+    const userCols = await all("PRAGMA table_info(users)");
+    const hasOnboarding = userCols.some(col => col.name === 'onboarding_answers');
+    if (!hasOnboarding) {
+      await run("ALTER TABLE users ADD COLUMN onboarding_answers TEXT");
+      console.log("Migration: Added column 'onboarding_answers' to table 'users'");
+    }
+    const hasTelegramChatId = userCols.some(col => col.name === 'telegram_chat_id');
+    if (!hasTelegramChatId) {
+      await run("ALTER TABLE users ADD COLUMN telegram_chat_id TEXT");
+      console.log("Migration: Added column 'telegram_chat_id' to table 'users'");
+    }
+    const hasTelegramPin = userCols.some(col => col.name === 'telegram_pin');
+    if (!hasTelegramPin) {
+      await run("ALTER TABLE users ADD COLUMN telegram_pin TEXT");
+      console.log("Migration: Added column 'telegram_pin' to table 'users'");
+    }
   } catch (e) {
     console.error("Database migration failed:", e.message);
   }
