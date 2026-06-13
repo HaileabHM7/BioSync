@@ -35,7 +35,7 @@ const authenticateToken = (req, res, next) => {
 // Admin check middleware
 const requireAdmin = async (req, res, next) => {
   try {
-    const user = await db.get('SELECT role FROM users WHERE id = ?', [req.user.id]);
+    const user = await db.get('SELECT role FROM users WHERE id = $1', [req.user.id]);
     if (!user || user.role !== 'admin') {
       return res.status(403).json({ error: 'Restricted to administrators' });
     }
@@ -54,7 +54,7 @@ app.post('/api/auth/signup', async (req, res) => {
   }
 
   try {
-    const existing = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+    const existing = await db.get('SELECT * FROM users WHERE email = $1', [email]);
     if (existing) {
       return res.status(400).json({ error: 'Account with this email already exists' });
     }
@@ -79,14 +79,17 @@ app.post('/api/auth/signup', async (req, res) => {
     });
 
     const hash = await bcrypt.hash(password, 10);
+    
+    // Use PostgreSQL syntax with RETURNING
     const result = await db.run(
-      'INSERT INTO users (email, password_hash, role, wellness_goals, hobbies, onboarding_answers) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO users (email, password_hash, role, wellness_goals, hobbies, onboarding_answers) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
       [email, hash, 'user', JSON.stringify(wellnessGoals), JSON.stringify(hobbies), JSON.stringify(onboardingAnswers)]
     );
 
     const token = jwt.sign({ id: result.id, email, role: 'user' }, JWT_SECRET, { expiresIn: '24h' });
     res.status(201).json({ token, user: { id: result.id, email, role: 'user', wellnessGoals, hobbies, onboardingAnswers } });
   } catch (err) {
+    console.error('Signup error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -98,7 +101,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   try {
-    const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+    const user = await db.get('SELECT * FROM users WHERE email = $1', [email]);
     if (!user) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
@@ -115,13 +118,14 @@ app.post('/api/auth/login', async (req, res) => {
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
     res.json({ token, user: { id: user.id, email: user.email, role: user.role, wellnessGoals, hobbies, onboardingAnswers } });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
-    const user = await db.get('SELECT id, email, role, wellness_goals, hobbies, onboarding_answers, telegram_chat_id FROM users WHERE id = ?', [req.user.id]);
+    const user = await db.get('SELECT id, email, role, wellness_goals, hobbies, onboarding_answers, telegram_chat_id FROM users WHERE id = $1', [req.user.id]);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     res.json({
@@ -134,6 +138,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
       telegramConnected: !!user.telegram_chat_id
     });
   } catch (err) {
+    console.error('Get me error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -144,10 +149,10 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const user = await db.get('SELECT * FROM users WHERE id = ?', [userId]);
+    const user = await db.get('SELECT * FROM users WHERE id = $1', [userId]);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    let query = 'UPDATE users SET email = ?, wellness_goals = ?, hobbies = ?';
+    let query = 'UPDATE users SET email = $1, wellness_goals = $2, hobbies = $3';
     let params = [
       email || user.email,
       wellnessGoals ? JSON.stringify(wellnessGoals) : user.wellness_goals,
@@ -156,16 +161,18 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
 
     if (password) {
       const hash = await bcrypt.hash(password, 10);
-      query += ', password_hash = ?';
+      query += ', password_hash = $4';
       params.push(hash);
+      query += ' WHERE id = $5';
+      params.push(userId);
+    } else {
+      query += ' WHERE id = $4';
+      params.push(userId);
     }
-
-    query += ' WHERE id = ?';
-    params.push(userId);
 
     await db.run(query, params);
 
-    const updated = await db.get('SELECT id, email, role, wellness_goals, hobbies FROM users WHERE id = ?', [userId]);
+    const updated = await db.get('SELECT id, email, role, wellness_goals, hobbies FROM users WHERE id = $1', [userId]);
     res.json({
       message: 'Profile updated successfully',
       user: {
@@ -177,6 +184,7 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
       }
     });
   } catch (err) {
+    console.error('Profile update error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -191,10 +199,11 @@ app.post('/api/telegram/generate-pin', authenticateToken, async (req, res) => {
     const formattedPin = `${rawPin.slice(0, 3)}-${rawPin.slice(3)}`;
 
     // Store in DB (raw 6-digit code for easier matching)
-    await db.run('UPDATE users SET telegram_pin = ? WHERE id = ?', [rawPin, userId]);
+    await db.run('UPDATE users SET telegram_pin = $1 WHERE id = $2', [rawPin, userId]);
 
     res.json({ pin: formattedPin, botUsername: 'biosync_robot' });
   } catch (err) {
+    console.error('Generate pin error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -202,7 +211,7 @@ app.post('/api/telegram/generate-pin', authenticateToken, async (req, res) => {
 app.get('/api/telegram/status', authenticateToken, async (req, res) => {
   const userId = req.user.id;
   try {
-    const user = await db.get('SELECT telegram_chat_id, telegram_pin FROM users WHERE id = ?', [userId]);
+    const user = await db.get('SELECT telegram_chat_id, telegram_pin FROM users WHERE id = $1', [userId]);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     let formattedPin = null;
@@ -216,12 +225,12 @@ app.get('/api/telegram/status', authenticateToken, async (req, res) => {
       botUsername: 'biosync_robot'
     });
   } catch (err) {
+    console.error('Telegram status error:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
 // --- BIOMETRICS & INGESTION API ---
-
 
 app.post('/api/sessions/submit', authenticateToken, async (req, res) => {
   const { heartRate, sleepHours, waterMl, stressLevel, fatigueBlinkRate, fatigueScore, faceSnapshotUrl, steps, activeMinutes } = req.body;
@@ -233,14 +242,14 @@ app.post('/api/sessions/submit', authenticateToken, async (req, res) => {
 
   try {
     // 1. Fetch user goals and hobbies
-    const user = await db.get('SELECT wellness_goals, hobbies, telegram_chat_id FROM users WHERE id = ?', [userId]);
+    const user = await db.get('SELECT wellness_goals, hobbies, telegram_chat_id FROM users WHERE id = $1', [userId]);
     const wellnessGoals = JSON.parse(user.wellness_goals || '[]');
     const hobbies = JSON.parse(user.hobbies || '[]');
 
-    // 2. Save session to DB
+    // 2. Save session to DB using PostgreSQL syntax
     const sessionResult = await db.run(`
       INSERT INTO sessions (user_id, heart_rate, sleep_hours, water_ml, stress_level, fatigue_blink_rate, fatigue_score, face_snapshot_url, steps, active_minutes)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
     `, [userId, heartRate, sleepHours, waterMl, stressLevel, fatigueBlinkRate || 0, fatigueScore || 0, faceSnapshotUrl || '', steps || 0, activeMinutes || 0]);
     
     const sessionId = sessionResult.id;
@@ -265,12 +274,12 @@ app.post('/api/sessions/submit', authenticateToken, async (req, res) => {
 
     await db.run(`
       INSERT INTO ai_nudges (session_id, user_id, nudge_text, hobby_targeted, assessment_text)
-      VALUES (?, ?, ?, ?, ?)
+      VALUES ($1, $2, $3, $4, $5)
     `, [sessionId, userId, aiResult.nudge, aiResult.targetHobby, assessmentPayload]);
 
     // 5. Evaluate Anomalies
-    const hrThresholdSetting = await db.get("SELECT value FROM settings WHERE key = 'heart_rate_threshold'");
-    const stressThresholdSetting = await db.get("SELECT value FROM settings WHERE key = 'stress_threshold'");
+    const hrThresholdSetting = await db.get("SELECT value FROM settings WHERE key = $1", ['heart_rate_threshold']);
+    const stressThresholdSetting = await db.get("SELECT value FROM settings WHERE key = $1", ['stress_threshold']);
 
     const hrThreshold = parseInt(hrThresholdSetting ? hrThresholdSetting.value : '100');
     const stressThreshold = parseInt(stressThresholdSetting ? stressThresholdSetting.value : '7');
@@ -280,7 +289,7 @@ app.post('/api/sessions/submit', authenticateToken, async (req, res) => {
       const severity = heartRate > (hrThreshold + 25) ? 'critical' : 'moderate';
       await db.run(`
         INSERT INTO anomaly_logs (session_id, user_id, metric, value, severity)
-        VALUES (?, ?, 'heart_rate', ?, ?)
+        VALUES ($1, $2, 'heart_rate', $3, $4)
       `, [sessionId, userId, heartRate, severity]);
       anomalies.push({ metric: 'heart_rate', value: heartRate, severity });
     }
@@ -289,7 +298,7 @@ app.post('/api/sessions/submit', authenticateToken, async (req, res) => {
       const severity = stressLevel >= 9 ? 'critical' : 'moderate';
       await db.run(`
         INSERT INTO anomaly_logs (session_id, user_id, metric, value, severity)
-        VALUES (?, ?, 'stress_level', ?, ?)
+        VALUES ($1, $2, 'stress_level', $3, $4)
       `, [sessionId, userId, stressLevel, severity]);
       anomalies.push({ metric: 'stress_level', value: stressLevel, severity });
     }
@@ -321,6 +330,7 @@ app.post('/api/sessions/submit', authenticateToken, async (req, res) => {
       anomalies
     });
   } catch (err) {
+    console.error('Session submit error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -332,12 +342,13 @@ app.get('/api/sessions/history', authenticateToken, async (req, res) => {
       SELECT s.*, n.nudge_text, n.hobby_targeted, n.assessment_text 
       FROM sessions s
       LEFT JOIN ai_nudges n ON s.id = n.session_id
-      WHERE s.user_id = ?
+      WHERE s.user_id = $1
       ORDER BY s.created_at DESC
       LIMIT 15
     `, [req.user.id]);
     res.json(sessions.reverse()); // return in chronological order
   } catch (err) {
+    console.error('History error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -355,6 +366,7 @@ app.get('/api/admin/anomalies', authenticateToken, requireAdmin, async (req, res
     `);
     res.json(logs);
   } catch (err) {
+    console.error('Admin anomalies error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -366,6 +378,7 @@ app.get('/api/admin/settings', authenticateToken, requireAdmin, async (req, res)
     rows.forEach(r => settings[r.key] = r.value);
     res.json(settings);
   } catch (err) {
+    console.error('Admin settings error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -374,16 +387,17 @@ app.post('/api/admin/settings', authenticateToken, requireAdmin, async (req, res
   const { heart_rate_threshold, stress_threshold, ai_temperature } = req.body;
   try {
     if (heart_rate_threshold != null) {
-      await db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['heart_rate_threshold', String(heart_rate_threshold)]);
+      await db.run('INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2', ['heart_rate_threshold', String(heart_rate_threshold)]);
     }
     if (stress_threshold != null) {
-      await db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['stress_threshold', String(stress_threshold)]);
+      await db.run('INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2', ['stress_threshold', String(stress_threshold)]);
     }
     if (ai_temperature != null) {
-      await db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['ai_temperature', String(ai_temperature)]);
+      await db.run('INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2', ['ai_temperature', String(ai_temperature)]);
     }
     res.json({ message: 'Admin settings saved successfully' });
   } catch (err) {
+    console.error('Save settings error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -574,9 +588,9 @@ async function handleTelegramMessage(token, message) {
 
 async function processTelegramLink(token, chatId, pin) {
   try {
-    const user = await db.get('SELECT * FROM users WHERE telegram_pin = ?', [pin]);
+    const user = await db.get('SELECT * FROM users WHERE telegram_pin = $1', [pin]);
     if (user) {
-      await db.run('UPDATE users SET telegram_chat_id = ?, telegram_pin = NULL WHERE id = ?', [String(chatId), user.id]);
+      await db.run('UPDATE users SET telegram_chat_id = $1, telegram_pin = NULL WHERE id = $2', [String(chatId), user.id]);
       await sendTelegramTextMessage(token, chatId, `🎉 Success! Your Telegram account has been linked to BioSync (Email: ${user.email}).\n\nWhenever you submit a biometric session on the website, you will receive a summary card here!`);
       console.log(`Successfully linked Telegram chat ${chatId} to user ID ${user.id} (${user.email})`);
     } else {
@@ -649,14 +663,27 @@ async function sendTelegramSummaryCard(token, chatId, data) {
   }
 }
 
-server.listen(port, () => {
-  console.log(`BioSync server listening on http://localhost:${port}`);
-  
-  // Start Telegram bot updates polling loop if token is available
-  const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
-  if (telegramBotToken && telegramBotToken !== 'your_token_here') {
-    startTelegramBotPolling(telegramBotToken);
-  } else {
-    console.log('TELEGRAM_BOT_TOKEN not found in .env. Telegram integration is disabled until token is provided.');
+// Initialize database and start server
+async function startServer() {
+  try {
+    await db.initializeDatabase();
+    console.log('✅ Database initialized successfully');
+    
+    server.listen(port, () => {
+      console.log(`BioSync server listening on http://localhost:${port}`);
+      
+      // Start Telegram bot updates polling loop if token is available
+      const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+      if (telegramBotToken && telegramBotToken !== 'your_token_here') {
+        startTelegramBotPolling(telegramBotToken);
+      } else {
+        console.log('TELEGRAM_BOT_TOKEN not found in .env. Telegram integration is disabled until token is provided.');
+      }
+    });
+  } catch (err) {
+    console.error('Failed to initialize database:', err);
+    process.exit(1);
   }
-});
+}
+
+startServer();
