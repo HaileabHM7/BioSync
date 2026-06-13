@@ -189,7 +189,7 @@ biosync-context-engine/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/biosync-context-engine.git
+git clone https://github.com/HaileabHM7/biosync-context-engine.git
 
 cd biosync-context-engine
 ```
@@ -209,8 +209,6 @@ PORT=3000
 
 DATABASE_URL=file:./src/database/biosync.db
 
-TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
-
 OPENAI_API_KEY=YOUR_OPENAI_API_KEY
 
 JWT_SECRET=YOUR_SECRET_KEY
@@ -219,7 +217,7 @@ JWT_SECRET=YOUR_SECRET_KEY
 ### 4. Run the Development Server
 
 ```bash
-npm run dev
+node server.js
 ```
 
 Open:
@@ -298,16 +296,8 @@ Contributions are welcome!
 
 ---
 
-## 📜 License
-
-This project is licensed under the MIT License.
-
----
-
 ## 👨‍💻 Author
 
 **Haileab Mulugeta Zewde**
 
 Cybersecurity Enthusiast • AI Builder • Quantum Computing Researcher
-
-Building intelligent systems that connect human behavior, biometrics, and AI to create meaningful real-time experiences.
