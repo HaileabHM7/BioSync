@@ -89,10 +89,10 @@
         </button>
 
         <!-- Sign Out -->
-        <button class="sidebar-btn danger" id="sidebar-logout-btn">
+        <a href="/#login"><button class="sidebar-btn danger" id="sidebar-logout-btn">
           <span class="btn-icon">→</span>
           <span class="btn-label">Sign Out</span>
-        </button>
+        </button></a>
       </div>
     </aside>
 
@@ -124,9 +124,11 @@
                 <span class="dropdown-email" id="dropdown-header-email">user@biosync.com</span>
                 <span class="dropdown-role" id="dropdown-header-role">user</span>
               </div>
-              <div class="dropdown-item danger" id="dropdown-logout-btn">
-                <span>Logout</span>
-              </div>
+              <a href="/#login">
+                <div class="dropdown-item danger" id="dropdown-logout-btn">
+                  <span>Logout</span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -175,14 +177,42 @@
     }
 
     /* Header — with updated navigation */
-    .landing-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 4rem;
-    }
+    /* Floating Sticky Navbar */
+.landing-header {
+  position: sticky;
+  top: 15px;
+  z-index: 1000;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 1rem;
+  margin-bottom: 4rem;
+
+  padding: 1rem 1.5rem;
+
+  background: rgba(11, 18, 25, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(60, 203, 177, 0.15);
+  border-radius: 18px;
+
+  box-shadow:
+    0 10px 35px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+
+  transition: all 0.3s ease;
+}
+/* Navbar when page is scrolled */
+.landing-header.scrolled {
+  background: rgba(11, 18, 25, 0.92);
+  box-shadow:
+    0 15px 40px rgba(0,0,0,0.35),
+    0 0 20px rgba(60,203,177,0.08);
+}
 
     .landing-logo {
       display: flex;
@@ -524,47 +554,47 @@
   <section id="landing-team" class="landing-section">
     <h2 class="section-title text-center">Our Team</h2>
     <div class="team-grid">
-      <!-- Member 1 -->
+      <!-- Member 1: Haileab -->
       <div class="glass-panel team-card">
-        <img class="team-avatar" src="https://randomuser.me/api/portraits/women/68.jpg" alt="Dr. Elena Vasquez">
-        <div class="team-name">Dr. Elena Vasquez</div>
-        <div class="team-role">Chief Health Officer</div>
-        <div class="team-bio">Neuroscientist & wellness strategist, shaping the AI's understanding of human rhythms.</div>
+        <img class="team-avatar" src="/img/haileab2.jpg" alt="Haileab Mulugeta">
+        <div class="team-name">Haileab Mulugeta</div>
+        <div class="team-role">Lead Full Stack Engineer</div>
+        <div class="team-bio">Architecting the entire platform from database to frontend, ensuring seamless integration and optimal performance across all systems.</div>
       </div>
-      <!-- Member 2 -->
+      <!-- Member 2: Dawit -->
       <div class="glass-panel team-card">
-        <img class="team-avatar" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Marcus Chen">
-        <div class="team-name">Marcus Chen</div>
-        <div class="team-role">Lead AI Engineer</div>
-        <div class="team-bio">Former ML architect, building the adaptive engine behind BioSync's suggestions.</div>
+        <img class="team-avatar" src="/img/dawit.jpg" alt="Dawit Fasil">
+        <div class="team-name">Dawit Fasil</div>
+        <div class="team-role">Founder & Product Visionary</div>
+        <div class="team-bio">Setting the strategic direction, defining the product roadmap, and ensuring BioSync stays true to its mission of making health accessible.</div>
       </div>
-      <!-- Member 3 -->
+      <!-- Member 3: Esayas -->
       <div class="glass-panel team-card">
-        <img class="team-avatar" src="https://randomuser.me/api/portraits/women/45.jpg" alt="Sophia Okonkwo">
-        <div class="team-name">Sophia Okonkwo</div>
-        <div class="team-role">Product & Experience Lead</div>
-        <div class="team-bio">Designing human-first interactions that feel intuitive, calm, and supportive.</div>
+        <img class="team-avatar" src="/img/esayas.jpg" >
+        <div class="team-name">Esayas Adugna</div>
+        <div class="team-role">Data Infrastructure Architect</div>
+        <div class="team-bio">Designing efficient data structures and database schemas that power real-time biometric processing and AI analytics.</div>
       </div>
-      <!-- Member 4 -->
+      <!-- Member 4: Yohanan -->
       <div class="glass-panel team-card">
-        <img class="team-avatar" src="https://randomuser.me/api/portraits/men/52.jpg" alt="Dr. James Whitmore">
-        <div class="team-name">Dr. James Whitmore</div>
-        <div class="team-role">Clinical Advisor</div>
-        <div class="team-bio">Sleep & performance specialist, ensuring every insight is evidence-based.</div>
+        <img class="team-avatar" src="/img/yohanan.jpg" alt="Yohanan Berhane">
+        <div class="team-name">Yohanan Berhane</div>
+        <div class="team-role">AI Integration Specialist</div>
+        <div class="team-bio">Integrating cutting-edge AI capabilities into the platform, from Gemini API orchestration to intelligent nudge generation.</div>
       </div>
-      <!-- Member 5 -->
+      <!-- Member 5: Zerayaecob -->
       <div class="glass-panel team-card">
-        <img class="team-avatar" src="https://randomuser.me/api/portraits/women/90.jpg" alt="Priya Kapoor">
-        <div class="team-name">Priya Kapoor</div>
-        <div class="team-role">Lead Biometric Analyst</div>
-        <div class="team-bio">Translating heart rate variability and stress signals into meaningful patterns.</div>
+        <img class="team-avatar" src="/img/zerayaecob.jpg" alt="Zerayaecob Abebe">
+        <div class="team-name">Zerayaecob Abebe</div>
+        <div class="team-role">UI/UX Designer</div>
+        <div class="team-bio">Creating intuitive, beautiful interfaces that make complex health data feel simple, actionable, and human-centered.</div>
       </div>
-      <!-- Member 6 -->
+      <!-- Member 6: Natnael -->
       <div class="glass-panel team-card">
-        <img class="team-avatar" src="https://randomuser.me/api/portraits/men/75.jpg" alt="Alex Rivera">
-        <div class="team-name">Alex Rivera</div>
-        <div class="team-role">Head of Partnerships</div>
-        <div class="team-bio">Building integrations with wearables and research institutions to expand BioSync's impact.</div>
+        <img class="team-avatar" src="/img/natnael.png" alt="Natnael Mulatu">
+        <div class="team-name">Natnael Mulatu</div>
+        <div class="team-role">Content Designer & Manager</div>
+        <div class="team-bio">Crafting engaging content, managing documentation, and ensuring every user touchpoint communicates clarity and care.</div>
       </div>
     </div>
   </section>
@@ -575,6 +605,83 @@
 </section>
 
 <script>
+  const navLinks = document.querySelectorAll(".nav-link");
+const header = document.querySelector(".landing-header");
+
+const sections = {
+  home: document.getElementById("home-section"),
+  vision: document.getElementById("landing-vision"),
+  team: document.getElementById("landing-team")
+};
+
+/* Smooth scrolling */
+navLinks.forEach(link => {
+  link.addEventListener("click", () => {
+    const target = link.dataset.nav;
+
+    if (target === "home") {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+      return;
+    }
+
+    sections[target]?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  });
+});
+
+/* Navbar style on scroll */
+window.addEventListener("scroll", () => {
+  if (window.scrollY > 50) {
+    header.classList.add("scrolled");
+  } else {
+    header.classList.remove("scrolled");
+  }
+});
+
+/* Active section highlight */
+const observer = new IntersectionObserver(
+  entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+
+        navLinks.forEach(link =>
+          link.classList.remove("active")
+        );
+
+        if (id === "home-section") {
+          document
+            .querySelector('[data-nav="home"]')
+            .classList.add("active");
+        }
+
+        if (id === "landing-vision") {
+          document
+            .querySelector('[data-nav="vision"]')
+            .classList.add("active");
+        }
+
+        if (id === "landing-team") {
+          document
+            .querySelector('[data-nav="team"]')
+            .classList.add("active");
+        }
+      }
+    });
+  },
+  {
+    threshold: 0.4
+  }
+);
+
+Object.values(sections).forEach(section => {
+  if (section) observer.observe(section);
+});
   // Smooth scroll navigation for the added navbar links (Home, Our Vision, Our Team)
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
@@ -599,212 +706,202 @@
 </html>
 
         <!-- ================= 1. LOGIN VIEW ================= -->
-        <section id="view-login" class="view-segment auth-container hidden">
-          <div class="glass-panel auth-card">
-            <h2 class="auth-title">Welcome back</h2>
-            <p class="auth-subtitle">Sign in to sync your biometrics</p>
-            
-            <form id="login-form">
-              <div class="form-group">
-                <label class="form-label" for="login-email">Email Address</label>
-                <input type="email" id="login-email" class="form-input" placeholder="name@domain.com" required>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="login-password">Password</label>
-                <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
-              </div>
-              
-              <div id="login-error" class="badge badge-pink mb-1 hidden" style="width:100%; text-align:center; padding:0.6rem;"></div>
-              
-              <button type="submit" class="btn-primary" id="login-submit-btn" style="width:100%;">
-                <span>Sign In</span>
-              </button>
-            </form>
-            
-            <p class="auth-switch">
-              Don't have an account? <a href="#" class="auth-link" id="to-signup-link">Create Account</a>
-            </p>
+        <section id="view-login" class="view-segment auth-container hidden" style="position: relative;">
+  
+  <a href="#landing" class="btn-secondary" id="signup-top-right-btn" style="position: absolute; top: 1rem; right: 1rem; z-index: 10; padding: 0.5rem 1rem; font-size: 0.85rem;">
+    Back to Home
+  </button></a>
+
+  <div class="glass-panel auth-card">
+    <h2 class="auth-title">Welcome back</h2>
+    <p class="auth-subtitle">Sign in to sync your biometrics</p>
+    
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label" for="login-email">Email Address</label>
+        <input type="email" id="login-email" class="form-input" placeholder="name@domain.com" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="login-password">Password</label>
+        <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
+      </div>
+      
+      <div id="login-error" class="badge badge-pink mb-1 hidden" style="width:100%; text-align:center; padding:0.6rem;"></div>
+      
+      <button type="submit" class="btn-primary" id="login-submit-btn" style="width:100%;">
+        <span>Sign In</span>
+      </button>
+    </form>
+    
+    <p class="auth-switch">
+      Don't have an account? <a href="#" class="auth-link" id="to-signup-link">Create Account</a>
+    </p>
+  </div>
+</section>
+
+<section id="view-signup" class="view-segment auth-container hidden" style="position: relative;">
+  
+  <a href="#landing" class="btn-secondary" id="signup-top-right-btn" style="position: absolute; top: 1rem; right: 1rem; z-index: 10; padding: 0.5rem 1rem; font-size: 0.85rem;">
+    Back to Home
+  </button></a>
+
+  <div class="glass-panel auth-card" style="max-width: 650px;">
+    <h2 class="auth-title">Create Account</h2>
+    <p class="auth-subtitle">Configure your lifestyle context & hobbies</p>
+
+    <div class="wizard-progress-container">
+      <div class="wizard-progress-track">
+        <div class="wizard-progress-bar" id="signup-progress-bar" style="width: 33.3%;"></div>
+      </div>
+    </div>
+    
+    <form id="signup-form">
+      <div class="wizard-step active" id="wizard-step-1">
+        <h3 class="step-title">Account Details</h3>
+        <div class="form-group">
+          <label class="form-label" for="signup-email">Email Address</label>
+          <input type="email" id="signup-email" class="form-input" placeholder="name@domain.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="signup-password">Password</label>
+          <input type="password" id="signup-password" class="form-input" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <div class="wizard-step hidden" id="wizard-step-2">
+        <h3 class="step-title">Wellness Preferences</h3>
+
+        <div class="form-group wizard-question" data-qid="q1" data-type="single">
+          <label class="form-label">What’s your primary wellness goal right now?</label>
+          <div class="selection-grid-vertical">
+            <div class="selection-card" data-val="Improve sleep quality">Improve sleep quality</div>
+            <div class="selection-card" data-val="Reduce stress and feel calmer">Reduce stress and feel calmer</div>
+            <div class="selection-card" data-val="Increase daily movement and fitness">Increase daily movement and fitness</div>
+            <div class="selection-card" data-val="Eat healthier and more mindfully">Eat healthier and more mindfully</div>
+            <div class="selection-card" data-val="Build strength or muscle tone">Build strength or muscle tone</div>
+            <div class="selection-card" data-val="Maintain overall health and balance">Maintain overall health and balance</div>
           </div>
-        </section>
+        </div>
 
-        <!-- ================= 2. SIGN UP / ONBOARDING VIEW ================= -->
-        <section id="view-signup" class="view-segment auth-container hidden">
-          <div class="glass-panel auth-card" style="max-width: 650px;">
-            <h2 class="auth-title">Create Account</h2>
-            <p class="auth-subtitle">Configure your lifestyle context & hobbies</p>
-
-            <!-- Wizard Progress Header -->
-            <div class="wizard-progress-container">
-              <div class="wizard-progress-track">
-                <div class="wizard-progress-bar" id="signup-progress-bar" style="width: 33.3%;"></div>
-              </div>
-              
-            </div>
-            
-            <form id="signup-form">
-              <!-- STEP 1: Account Credentials -->
-              <div class="wizard-step active" id="wizard-step-1">
-                <h3 class="step-title">Account Details</h3>
-                <div class="form-group">
-                  <label class="form-label" for="signup-email">Email Address</label>
-                  <input type="email" id="signup-email" class="form-input" placeholder="name@domain.com" required>
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="signup-password">Password</label>
-                  <input type="password" id="signup-password" class="form-input" placeholder="••••••••" required>
-                </div>
-              </div>
-
-              <!-- STEP 2: Lifestyle Context (Questions 1-5) -->
-              <div class="wizard-step hidden" id="wizard-step-2">
-                <h3 class="step-title">Wellness Preferences</h3>
-
-                <!-- Q1: Primary Wellness Goal -->
-                <div class="form-group wizard-question" data-qid="q1" data-type="single">
-                  <label class="form-label">What’s your primary wellness goal right now?</label>
-                  <div class="selection-grid-vertical">
-                    <div class="selection-card" data-val="Improve sleep quality">Improve sleep quality</div>
-                    <div class="selection-card" data-val="Reduce stress and feel calmer">Reduce stress and feel calmer</div>
-                    <div class="selection-card" data-val="Increase daily movement and fitness">Increase daily movement and fitness</div>
-                    <div class="selection-card" data-val="Eat healthier and more mindfully">Eat healthier and more mindfully</div>
-                    <div class="selection-card" data-val="Build strength or muscle tone">Build strength or muscle tone</div>
-                    <div class="selection-card" data-val="Maintain overall health and balance">Maintain overall health and balance</div>
-                  </div>
-                </div>
-
-                <!-- Q2: Daily Routine -->
-                <div class="form-group wizard-question" data-qid="q2" data-type="single">
-                  <label class="form-label">How would you describe your typical daily routine?</label>
-                  <div class="selection-grid-vertical">
-                    <div class="selection-card" data-val="Mostly sedentary (desk job, long sitting hours)">Mostly sedentary (desk job, long sitting hours)</div>
-                    <div class="selection-card" data-val="Lightly active (some walking, standing)">Lightly active (some walking, standing)</div>
-                    <div class="selection-card" data-val="Moderately active (regular exercise or physically engaging work)">Moderately active (regular exercise or physically engaging work)</div>
-                    <div class="selection-card" data-val="Very active (intense training or physically demanding days)">Very active (intense training or physically demanding days)</div>
-                  </div>
-                </div>
-
-                <!-- Q3: Energy Peak -->
-                <div class="form-group wizard-question" data-qid="q3" data-type="single">
-                  <label class="form-label">When do you usually feel most energetic and focused?</label>
-                  <div class="selection-grid-vertical">
-                    <div class="selection-card" data-val="Morning (before noon)">Morning (before noon)</div>
-                    <div class="selection-card" data-val="Afternoon">Afternoon</div>
-                    <div class="selection-card" data-val="Evening">Evening</div>
-                    <div class="selection-card" data-val="Late night">Late night</div>
-                  </div>
-                </div>
-
-                <!-- Q4: Environment -->
-                <div class="form-group wizard-question" data-qid="q4" data-type="single">
-                  <label class="form-label">Which environment makes you feel most at ease?</label>
-                  <div class="selection-grid-vertical">
-                    <div class="selection-card" data-val="The comfort of indoors">The comfort of indoors</div>
-                    <div class="selection-card" data-val="The freedom of outdoors">The freedom of outdoors</div>
-                    <div class="selection-card" data-val="I genuinely enjoy both equally">I genuinely enjoy both equally</div>
-                  </div>
-                </div>
-
-                <!-- Q5: Healthy Habit Try -->
-                <div class="form-group wizard-question" data-qid="q5" data-type="single">
-                  <label class="form-label">How do you prefer to try new healthy habits?</label>
-                  <div class="selection-grid-vertical">
-                    <div class="selection-card" data-val="I like small, gradual changes that stick">I like small, gradual changes that stick</div>
-                    <div class="selection-card" data-val="I’m excited by bold, immediate shifts">I’m excited by bold, immediate shifts</div>
-                    <div class="selection-card" data-val="It really depends on my mood and season">It really depends on my mood and season</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- STEP 3: Recharge & Hobbies (Questions 6-10) -->
-              <div class="wizard-step hidden" id="wizard-step-3">
-                <h3 class="step-title">Hobbies & Lifestyle</h3>
-
-                <!-- Q6: Recharge Method -->
-                <div class="form-group wizard-question" data-qid="q6" data-type="multi" data-max="2">
-                  <label class="form-label">What best describes how you recharge after a draining day? (Pick up to 2)</label>
-                  <div class="selection-grid-vertical">
-                    <div class="selection-card" data-val="Quiet solo time">Quiet solo time</div>
-                    <div class="selection-card" data-val="Watching a show, reading, or gaming">Watching a show, reading, or gaming</div>
-                    <div class="selection-card" data-val="Talking with close friends or family">Talking with close friends or family</div>
-                    <div class="selection-card" data-val="Moving my body (walk, stretch, light workout)">Moving my body (walk, stretch, light workout)</div>
-                    <div class="selection-card" data-val="Doing something creative or hands-on (cooking, art, music)">Doing something creative or hands-on (cooking, art, music)</div>
-                  </div>
-                </div>
-
-                <!-- Q7: Hobbies selection -->
-                <div class="form-group wizard-question" data-qid="q7" data-type="multi" data-max="99">
-                  <label class="form-label">Which hobbies or activities genuinely light you up? (Select all that apply)</label>
-                  <div class="selection-grid">
-                    <div class="selection-card" data-val="Reading, writing, or journaling">Reading, writing, or journaling</div>
-                    <div class="selection-card" data-val="Music, art, or creative projects">Music, art, or creative projects</div>
-                    <div class="selection-card" data-val="Gaming or puzzles">Gaming or puzzles</div>
-                    <div class="selection-card" data-val="Cooking or baking">Cooking or baking</div>
-                    <div class="selection-card" data-val="Yoga, pilates, or mindful movement">Yoga, pilates, or mindful movement</div>
-                    <div class="selection-card" data-val="Running, cycling, or cardio">Running, cycling, or cardio</div>
-                    <div class="selection-card" data-val="Strength training or gym workouts">Strength training or gym workouts</div>
-                    <div class="selection-card" data-val="Hiking, walking, or nature time">Hiking, walking, or nature time</div>
-                    <div class="selection-card" data-val="Team sports or group classes">Team sports or group classes</div>
-                    <div class="selection-card" data-val="Dancing">Dancing</div>
-                    <div class="selection-card" data-val="Gardening or DIY projects">Gardening or DIY projects</div>
-                    <div class="selection-card" data-val="I don’t have a specific hobby right now">I don’t have a specific hobby right now</div>
-                  </div>
-                </div>
-
-                <!-- Q8: Motivation type -->
-                <div class="form-group wizard-question" data-qid="q8" data-type="single">
-                  <label class="form-label">What type of motivation works best for you?</label>
-                  <div class="selection-grid-vertical">
-                    <div class="selection-card" data-val="Data and measurable progress">Data and measurable progress</div>
-                    <div class="selection-card" data-val="Positive, encouraging language">Positive, encouraging language</div>
-                    <div class="selection-card" data-val="Friendly challenges or social motivation">Friendly challenges or social motivation</div>
-                    <div class="selection-card" data-val="Gentle, soft nudges and reminders">Gentle, soft nudges and reminders</div>
-                  </div>
-                </div>
-
-                <!-- Q9: Diet preferences -->
-                <div class="form-group wizard-question" data-qid="q9" data-type="single">
-                  <label class="form-label">Do you have any dietary preferences or restrictions?</label>
-                  <div class="selection-grid-vertical">
-                    <div class="selection-card" data-val="No restrictions">No restrictions</div>
-                    <div class="selection-card" data-val="Vegetarian">Vegetarian</div>
-                    <div class="selection-card" data-val="Vegan">Vegan</div>
-                    <div class="selection-card" data-val="Gluten-free">Gluten-free</div>
-                    <div class="selection-card" data-val="Dairy-free">Dairy-free</div>
-                    <div class="selection-card" data-val="Low-carb or keto">Low-carb or keto</div>
-                    <div class="selection-card" data-val="Intermittent faster">Intermittent faster</div>
-                    
-                  </div>
-                </div>
-
-                <!-- Q10: Social situations -->
-                <div class="form-group wizard-question" data-qid="q10" data-type="single">
-                  <label class="form-label">In social situations, you usually…</label>
-                  <div class="selection-grid-vertical">
-                    <div class="selection-card" data-val="Prefer to listen and observe">Prefer to listen and observe</div>
-                    <div class="selection-card" data-val="Enjoy one-on-one or small group conversations">Enjoy one-on-one or small group conversations</div>
-                    <div class="selection-card" data-val="Feel energized in larger, lively groups">Feel energized in larger, lively groups</div>
-                    <div class="selection-card" data-val="It shifts a lot depending on the context">It shifts a lot depending on the context</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Signup Error -->
-              <div id="signup-error" class="badge badge-pink mb-1 hidden" style="width:100%; text-align:center; padding:0.6rem;"></div>
-
-              <!-- Wizard Footer Navigation -->
-              <div class="wizard-footer">
-                <button type="button" class="btn-secondary hidden" id="signup-prev-btn">Back</button>
-                <button type="button" class="btn-primary" id="signup-next-btn" style="margin-left: auto;">Next</button>
-                <button type="submit" class="btn-primary hidden" id="signup-submit-btn" style="margin-left: auto;">Create Account</button>
-              </div>
-            </form>
-            
-            <p class="auth-switch">
-              Already registered? <a href="#" class="auth-link" id="to-login-link">Sign In</a>
-            </p>
+        <div class="form-group wizard-question" data-qid="q2" data-type="single">
+          <label class="form-label">How would you describe your typical daily routine?</label>
+          <div class="selection-grid-vertical">
+            <div class="selection-card" data-val="Mostly sedentary (desk job, long sitting hours)">Mostly sedentary (desk job, long sitting hours)</div>
+            <div class="selection-card" data-val="Lightly active (some walking, standing)">Lightly active (some walking, standing)</div>
+            <div class="selection-card" data-val="Moderately active (regular exercise or physically engaging work)">Moderately active (regular exercise or physically engaging work)</div>
+            <div class="selection-card" data-val="Very active (intense training or physically demanding days)">Very active (intense training or physically demanding days)</div>
           </div>
-        </section>
+        </div>
 
+        <div class="form-group wizard-question" data-qid="q3" data-type="single">
+          <label class="form-label">When do you usually feel most energetic and focused?</label>
+          <div class="selection-grid-vertical">
+            <div class="selection-card" data-val="Morning (before noon)">Morning (before noon)</div>
+            <div class="selection-card" data-val="Afternoon">Afternoon</div>
+            <div class="selection-card" data-val="Evening">Evening</div>
+            <div class="selection-card" data-val="Late night">Late night</div>
+          </div>
+        </div>
+
+        <div class="form-group wizard-question" data-qid="q4" data-type="single">
+          <label class="form-label">Which environment makes you feel most at ease?</label>
+          <div class="selection-grid-vertical">
+            <div class="selection-card" data-val="The comfort of indoors">The comfort of indoors</div>
+            <div class="selection-card" data-val="The freedom of outdoors">The freedom of outdoors</div>
+            <div class="selection-card" data-val="I genuinely enjoy both equally">I genuinely enjoy both equally</div>
+          </div>
+        </div>
+
+        <div class="form-group wizard-question" data-qid="q5" data-type="single">
+          <label class="form-label">How do you prefer to try new healthy habits?</label>
+          <div class="selection-grid-vertical">
+            <div class="selection-card" data-val="I like small, gradual changes that stick">I like small, gradual changes that stick</div>
+            <div class="selection-card" data-val="I’m excited by bold, immediate shifts">I’m excited by bold, immediate shifts</div>
+            <div class="selection-card" data-val="It really depends on my mood and season">It really depends on my mood and season</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-step hidden" id="wizard-step-3">
+        <h3 class="step-title">Hobbies & Lifestyle</h3>
+
+        <div class="form-group wizard-question" data-qid="q6" data-type="multi" data-max="2">
+          <label class="form-label">What best describes how you recharge after a draining day? (Pick up to 2)</label>
+          <div class="selection-grid-vertical">
+            <div class="selection-card" data-val="Quiet solo time">Quiet solo time</div>
+            <div class="selection-card" data-val="Watching a show, reading, or gaming">Watching a show, reading, or gaming</div>
+            <div class="selection-card" data-val="Talking with close friends or family">Talking with close friends or family</div>
+            <div class="selection-card" data-val="Moving my body (walk, stretch, light workout)">Moving my body (walk, stretch, light workout)</div>
+            <div class="selection-card" data-val="Doing something creative or hands-on (cooking, art, music)">Doing something creative or hands-on (cooking, art, music)</div>
+          </div>
+        </div>
+
+        <div class="form-group wizard-question" data-qid="q7" data-type="multi" data-max="99">
+          <label class="form-label">Which hobbies or activities genuinely light you up? (Select all that apply)</label>
+          <div class="selection-grid">
+            <div class="selection-card" data-val="Reading, writing, or journaling">Reading, writing, or journaling</div>
+            <div class="selection-card" data-val="Music, art, or creative projects">Music, art, or creative projects</div>
+            <div class="selection-card" data-val="Gaming or puzzles">Gaming or puzzles</div>
+            <div class="selection-card" data-val="Cooking or baking">Cooking or baking</div>
+            <div class="selection-card" data-val="Yoga, pilates, or mindful movement">Yoga, pilates, or mindful movement</div>
+            <div class="selection-card" data-val="Running, cycling, or cardio">Running, cycling, or cardio</div>
+            <div class="selection-card" data-val="Strength training or gym workouts">Strength training or gym workouts</div>
+            <div class="selection-card" data-val="Hiking, walking, or nature time">Hiking, walking, or nature time</div>
+            <div class="selection-card" data-val="Team sports or group classes">Team sports or group classes</div>
+            <div class="selection-card" data-val="Dancing">Dancing</div>
+            <div class="selection-card" data-val="Gardening or DIY projects">Gardening or DIY projects</div>
+            <div class="selection-card" data-val="I don’t have a specific hobby right now">I don’t have a specific hobby right now</div>
+          </div>
+        </div>
+
+        <div class="form-group wizard-question" data-qid="q8" data-type="single">
+          <label class="form-label">What type of motivation works best for you?</label>
+          <div class="selection-grid-vertical">
+            <div class="selection-card" data-val="Data and measurable progress">Data and measurable progress</div>
+            <div class="selection-card" data-val="Positive, encouraging language">Positive, encouraging language</div>
+            <div class="selection-card" data-val="Friendly challenges or social motivation">Friendly challenges or social motivation</div>
+            <div class="selection-card" data-val="Gentle, soft nudges and reminders">Gentle, soft nudges and reminders</div>
+          </div>
+        </div>
+
+        <div class="form-group wizard-question" data-qid="q9" data-type="single">
+          <label class="form-label">Do you have any dietary preferences or restrictions?</label>
+          <div class="selection-grid-vertical">
+            <div class="selection-card" data-val="No restrictions">No restrictions</div>
+            <div class="selection-card" data-val="Vegetarian">Vegetarian</div>
+            <div class="selection-card" data-val="Vegan">Vegan</div>
+            <div class="selection-card" data-val="Gluten-free">Gluten-free</div>
+            <div class="selection-card" data-val="Dairy-free">Dairy-free</div>
+            <div class="selection-card" data-val="Low-carb or keto">Low-carb or keto</div>
+            <div class="selection-card" data-val="Intermittent faster">Intermittent faster</div>
+          </div>
+        </div>
+
+        <div class="form-group wizard-question" data-qid="q10" data-type="single">
+          <label class="form-label">In social situations, you usually…</label>
+          <div class="selection-grid-vertical">
+            <div class="selection-card" data-val="Prefer to listen and observe">Prefer to listen and observe</div>
+            <div class="selection-card" data-val="Enjoy one-on-one or small group conversations">Enjoy one-on-one or small group conversations</div>
+            <div class="selection-card" data-val="Feel energized in larger, lively groups">Feel energized in larger, lively groups</div>
+            <div class="selection-card" data-val="It shifts a lot depending on the context">It shifts a lot depending on the context</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="signup-error" class="badge badge-pink mb-1 hidden" style="width:100%; text-align:center; padding:0.6rem;"></div>
+
+      <div class="wizard-footer">
+        <button type="button" class="btn-secondary hidden" id="signup-prev-btn">Back</button>
+        <button type="button" class="btn-primary" id="signup-next-btn" style="margin-left: auto;">Next</button>
+        <button type="submit" class="btn-primary hidden" id="signup-submit-btn" style="margin-left: auto;">Create Account</button>
+      </div>
+    </form>
+    
+    <p class="auth-switch">
+      Already registered? <a href="#" class="auth-link" id="to-login-link">Sign In</a>
+    </p>
+  </div>
+</section>
         <!-- ================= 3. USER DASHBOARD (Screenshots Layout) ================= -->
         <section id="view-dashboard" class="view-segment hidden">
           <div class="welcome-banner">
