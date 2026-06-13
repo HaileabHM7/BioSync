@@ -154,6 +154,7 @@
       font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
       color: #eef2f8;
       line-height: 1.4;
+      scroll-behavior: smooth;
     }
 
     /* Glass panels — original dark/translucent style */
@@ -173,7 +174,7 @@
       padding: 1rem 2rem 3rem;
     }
 
-    /* Header — unchanged colors */
+    /* Header — with updated navigation */
     .landing-header {
       display: flex;
       justify-content: space-between;
@@ -200,6 +201,26 @@
       background: none;
       -webkit-background-clip: unset;
       background-clip: unset;
+      color: #3ccbb1;
+    }
+
+    /* Navigation links (Home, Our Vision, Our Team) */
+    .landing-nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .nav-link {
+      color: #cbddee;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: 0.2s;
+      cursor: pointer;
+    }
+
+    .nav-link:hover {
       color: #3ccbb1;
     }
 
@@ -274,6 +295,7 @@
     /* sections */
     .landing-section {
       margin-bottom: 4rem;
+      scroll-margin-top: 80px;
     }
 
     .section-title {
@@ -304,6 +326,55 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 2rem;
+    }
+
+    /* Team grid — 3 columns, responsive */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    .team-card {
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .team-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .team-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 1rem;
+      border: 2px solid #3ccbb1;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      background: #1e2a36;
+    }
+
+    .team-name {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #eef3fc;
+      margin-bottom: 0.3rem;
+    }
+
+    .team-role {
+      font-size: 0.9rem;
+      color: #8dd9cb;
+      margin-bottom: 0.8rem;
+      font-weight: 500;
+    }
+
+    .team-bio {
+      font-size: 0.85rem;
+      color: #bfd4e5;
+      line-height: 1.5;
+      padding: 0 0.5rem;
     }
 
     .landing-card h3 {
@@ -340,11 +411,20 @@
         align-items: stretch;
         text-align: center;
       }
+      .landing-nav-links {
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
       .landing-nav-btns {
         justify-content: center;
       }
       .glass-panel {
         padding: 1.5rem;
+      }
+      .team-avatar {
+        width: 100px;
+        height: 100px;
       }
     }
   </style>
@@ -357,13 +437,21 @@
       <span class="logo-icon">🩺</span>
       <span class="logo-text">BioSync</span>
     </div>
+    
+    <!-- NEW NAVIGATION BAR (Home, Our Vision, Our Team) -->
+    <div class="landing-nav-links">
+      <a class="nav-link" data-nav="home">Home</a>
+      <a class="nav-link" data-nav="vision">Our Vision</a>
+      <a class="nav-link" data-nav="team">Our Team</a>
+    </div>
+
     <div class="landing-nav-btns">
       <button class="btn-secondary" data-view="login">Sign In</button>
       <button class="btn-primary" data-view="signup">Get Started</button>
     </div>
   </header>
 
-  <main class="landing-hero-section">
+  <main class="landing-hero-section" id="home-section">
     <h1 class="landing-hero-title">Health is not a checklist — <br><span class="highlight-text">it's a rhythm.</span></h1>
     <p class="landing-hero-subtitle">
       BioSync listens to your body, learns who you are, and intelligently suggests the one thing you need right now to feel better.
@@ -414,7 +502,7 @@
     </div>
   </section>
 
-  <!-- ========== SECTION 3: What BioSync Does + Our Plan (2 columns, clearer hierarchy) ========== -->
+  <!-- ========== SECTION 3: What BioSync Does + Our Plan (2 columns) ========== -->
   <section id="landing-platform" class="landing-section">
     <div class="landing-grid-2">
       <div class="glass-panel landing-card">
@@ -432,13 +520,81 @@
     </div>
   </section>
 
+  <!-- ========== NEW SECTION: OUR TEAM (6 members with pictures and roles) ========== -->
+  <section id="landing-team" class="landing-section">
+    <h2 class="section-title text-center">Our Team</h2>
+    <div class="team-grid">
+      <!-- Member 1 -->
+      <div class="glass-panel team-card">
+        <img class="team-avatar" src="https://randomuser.me/api/portraits/women/68.jpg" alt="Dr. Elena Vasquez">
+        <div class="team-name">Dr. Elena Vasquez</div>
+        <div class="team-role">Chief Health Officer</div>
+        <div class="team-bio">Neuroscientist & wellness strategist, shaping the AI's understanding of human rhythms.</div>
+      </div>
+      <!-- Member 2 -->
+      <div class="glass-panel team-card">
+        <img class="team-avatar" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Marcus Chen">
+        <div class="team-name">Marcus Chen</div>
+        <div class="team-role">Lead AI Engineer</div>
+        <div class="team-bio">Former ML architect, building the adaptive engine behind BioSync's suggestions.</div>
+      </div>
+      <!-- Member 3 -->
+      <div class="glass-panel team-card">
+        <img class="team-avatar" src="https://randomuser.me/api/portraits/women/45.jpg" alt="Sophia Okonkwo">
+        <div class="team-name">Sophia Okonkwo</div>
+        <div class="team-role">Product & Experience Lead</div>
+        <div class="team-bio">Designing human-first interactions that feel intuitive, calm, and supportive.</div>
+      </div>
+      <!-- Member 4 -->
+      <div class="glass-panel team-card">
+        <img class="team-avatar" src="https://randomuser.me/api/portraits/men/52.jpg" alt="Dr. James Whitmore">
+        <div class="team-name">Dr. James Whitmore</div>
+        <div class="team-role">Clinical Advisor</div>
+        <div class="team-bio">Sleep & performance specialist, ensuring every insight is evidence-based.</div>
+      </div>
+      <!-- Member 5 -->
+      <div class="glass-panel team-card">
+        <img class="team-avatar" src="https://randomuser.me/api/portraits/women/90.jpg" alt="Priya Kapoor">
+        <div class="team-name">Priya Kapoor</div>
+        <div class="team-role">Lead Biometric Analyst</div>
+        <div class="team-bio">Translating heart rate variability and stress signals into meaningful patterns.</div>
+      </div>
+      <!-- Member 6 -->
+      <div class="glass-panel team-card">
+        <img class="team-avatar" src="https://randomuser.me/api/portraits/men/75.jpg" alt="Alex Rivera">
+        <div class="team-name">Alex Rivera</div>
+        <div class="team-role">Head of Partnerships</div>
+        <div class="team-bio">Building integrations with wearables and research institutions to expand BioSync's impact.</div>
+      </div>
+    </div>
+  </section>
+
   <footer class="landing-footer">
     <p>&copy; 2026 BioSync Context Engine. All rights reserved.</p>
   </footer>
 </section>
 
-<!-- identical button behaviour (demo actions) -->
+<script>
+  // Smooth scroll navigation for the added navbar links (Home, Our Vision, Our Team)
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = link.getAttribute('data-nav');
+      if (target === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (target === 'vision') {
+        const visionSection = document.getElementById('landing-vision');
+        if (visionSection) visionSection.scrollIntoView({ behavior: 'smooth' });
+      } else if (target === 'team') {
+        const teamSection = document.getElementById('landing-team');
+        if (teamSection) teamSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
 
+  // Keep existing buttons behaviour (demo for signup/login)
+  
+</script>
 </body>
 </html>
 
@@ -983,27 +1139,27 @@
           <!-- Granular AI Insights Cards -->
           <div id="report-insights-container" class="glass-panel mt-1 hidden" style="border-top: 3px solid var(--accent-cyan); margin-bottom: 1.5rem;">
             <h3 class="reports-card-header" style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent-cyan);">
-              🔍 Granular Recovery Recommendations
+              Granular Recovery Recommendations
             </h3>
             <div class="insights-grid-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
               <div class="insight-row-item" style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem; display: flex; align-items: baseline;">
-                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">😴 Sleep:</span>
+                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">Sleep:</span>
                 <span id="insight-sleep-val" style="color: var(--text-muted);">--</span>
               </div>
               <div class="insight-row-item" style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem; display: flex; align-items: baseline;">
-                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">💧 Hydration:</span>
+                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">Hydration:</span>
                 <span id="insight-hydration-val" style="color: var(--text-muted);">--</span>
               </div>
               <div class="insight-row-item" style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem; display: flex; align-items: baseline;">
-                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">🧘 Stress:</span>
+                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">Stress:</span>
                 <span id="insight-stress-val" style="color: var(--text-muted);">--</span>
               </div>
               <div class="insight-row-item" style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem; display: flex; align-items: baseline;">
-                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">📈 Heart Rate:</span>
+                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">Heart Rate:</span>
                 <span id="insight-heartrate-val" style="color: var(--text-muted);">--</span>
               </div>
               <div class="insight-row-item" style="padding-bottom: 0.25rem; display: flex; align-items: baseline;">
-                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">👁️ Fatigue Scan:</span>
+                <span style="font-weight: 700; color: var(--text-dark); margin-right: 0.5rem; white-space: nowrap;">Fatigue Scan:</span>
                 <span id="insight-fatigue-val" style="color: var(--text-muted);">--</span>
               </div>
             </div>
@@ -1119,11 +1275,6 @@
                 <button type="button" class="btn-primary" id="telegram-connect-btn" style="background-color: #0088cc; display: inline-flex; align-items: center; gap: 0.5rem; border: none; padding: 0.6rem 1.25rem;">
                   <i class="fa-brands fa-telegram"></i> <span>Connect to Telegram</span>
                 </button>
-                <a href="https://t.me/biosync_robot" target="_blank">
-                  <button type="button" class="btn-primary" id="telegram-open-btn" style="background-color: #0088cc; display: inline-flex; align-items: center; gap: 0.5rem; border: none; padding: 0.6rem 1.25rem;">
-                    <i class="fa-brands fa-telegram"></i> <span>Open in Telegram</span>
-                  </button>
-                </a>
               </div>
 
               <div id="telegram-pin-ui" class="hidden mt-1">
@@ -1159,6 +1310,7 @@
                 </p>
               </div>
             </div>
+
           </div>
         </section>
 

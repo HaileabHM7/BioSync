@@ -618,19 +618,19 @@ async function sendTelegramSummaryCard(token, chatId, data) {
   html += `• Daily Steps: <b>${Number(steps).toLocaleString()}</b>\n`;
   html += `• Active Minutes: <b>${activeMinutes} mins</b>\n\n`;
   
-  html += `<b>💡 AI Smart Suggestion:</b>\n`;
+  html += `<b>AI Smart Suggestion:</b>\n`;
   html += `<i>"${nudge}"</i>\n\n`;
   
   html += `<b>🔬 Physiological Assessment:</b>\n`;
-  html += `${assessment}\n\n`;
+  html += `${assessment}\n\n\n`;
   
   if (insights) {
-    html += `<b>📊 AI Analysis Insights:</b>\n`;
-    if (insights.sleep) html += `• 😴 <b>Sleep:</b> ${insights.sleep}\n`;
-    if (insights.hydration) html += `• 💧 <b>Hydration:</b> ${insights.hydration}\n`;
-    if (insights.stress) html += `• 🧘 <b>Stress:</b> ${insights.stress}\n`;
-    if (insights.heartRate) html += `• 📈 <b>Heart Rate:</b> ${insights.heartRate}\n`;
-    if (insights.fatigue) html += `• 👁️ <b>Fatigue Scan:</b> ${insights.fatigue}\n`;
+    html += `<b>AI Analysis Insights:</b>\n\n`;
+    if (insights.sleep) html += `• <b>Sleep:</b> ${insights.sleep}\n`;
+    if (insights.hydration) html += `• <b>Hydration:</b> ${insights.hydration}\n`;
+    if (insights.stress) html += `• <b>Stress:</b> ${insights.stress}\n`;
+    if (insights.heartRate) html += `• <b>Heart Rate:</b> ${insights.heartRate}\n`;
+    if (insights.fatigue) html += `• <b>Fatigue Scan:</b> ${insights.fatigue}\n`;
   }
   
   try {
