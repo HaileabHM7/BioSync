@@ -104,6 +104,8 @@ async function initializeDatabase() {
       )
     `);
 
+    
+
     // Create Settings Table
     await run(`
       CREATE TABLE IF NOT EXISTS settings (
@@ -152,6 +154,12 @@ async function runSchemaMigrations() {
     if (!hasActiveMinutes) {
       await run("ALTER TABLE sessions ADD COLUMN active_minutes INTEGER DEFAULT 0");
       console.log("Migration: Added column 'active_minutes' to table 'sessions'");
+    }
+
+    const hasEyeStrain = sessionCols.some(col => col.name === 'eye_strain');
+    if (!hasEyeStrain) {
+      await run("ALTER TABLE sessions ADD COLUMN eye_strain INTEGER DEFAULT 0");
+      console.log("Migration: Added column 'eye_strain' to table 'sessions'");
     }
 
     // 2. Check if 'assessment_text' exists in 'ai_nudges'

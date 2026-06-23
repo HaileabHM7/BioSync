@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BioSync Context Engine | Autonomic Recovery Analytics</title>
   <meta name="description" content="Cutting-edge biometric health monitoring with real-time smartwatch syncing, webcam fatigue analysis, and custom AI recommendations.">
-  
+  <elevenlabs-convai agent-id="agent_7701kv0jh2nzeppsxwvqedwa2bgd"></elevenlabs-convai><script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
   <!-- CSS Styles -->
   <link rel="stylesheet" href="/css/style.css">
   
@@ -31,7 +31,8 @@
       </div>
 
       <nav class="sidebar-nav-container">
-        <ul class="sidebar-nav">
+        <!-- User Sidebar Menu -->
+        <ul class="sidebar-nav" id="sidebar-nav-user">
           <li>
             <a class="nav-link active" data-view="dashboard" id="sid-dashboard">
               <span class="nav-icon"><i class="fa-solid fa-chart-simple"></i></span>
@@ -46,13 +47,13 @@
           </li>
           <li>
             <a class="nav-link" data-view="webcam" id="sid-webcam">
-              <span class="nav-icon"><i class="fa-solid fa-video"></i></i></span>
+              <span class="nav-icon"><i class="fa-solid fa-video"></i></span>
               <span class="nav-label">Webcam Scanner</span>
             </a>
           </li>
           <li>
             <a class="nav-link" data-view="analysis" id="sid-analysis">
-              <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></i></span>
+              <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span>
               <span class="nav-label">Analysis</span>
             </a>
           </li>
@@ -63,13 +64,48 @@
             </a>
           </li>
           <li>
-            <a class="nav-link hidden" data-view="admin" id="sid-admin-link">
+            <a class="nav-link hidden" data-view="admin-users" id="sid-admin-link">
               <span class="nav-icon"><i class="fa-solid fa-gear"></i></span>
-              <span class="nav-label">Admin</span>
+              <span class="nav-label">Admin Portal</span>
+            </a>
+          </li>
+        </ul>
+
+        <!-- Admin Sidebar Menu -->
+        <ul class="sidebar-nav hidden" id="sidebar-nav-admin">
+          <li style="padding: 0 1rem 0.5rem; font-size: 0.75rem; font-weight: bold; color: var(--accent-pink); letter-spacing: 0.1em; text-transform: uppercase;">
+            Admin Portal
+          </li>
+          <li>
+            <a class="nav-link" data-view="admin-users" id="sid-admin-users">
+              <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
+              <span class="nav-label">User Management</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" data-view="admin-anomalies" id="sid-admin-anomalies">
+              <span class="nav-icon"><i class="fa-solid fa-circle-exclamation"></i></span>
+              <span class="nav-label">Anomaly Logs</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" data-view="admin-finetuning" id="sid-admin-finetuning">
+              <span class="nav-icon"><i class="fa-solid fa-sliders"></i></span>
+              <span class="nav-label">AI Fine-tuning</span>
+            </a>
+          </li>
+          
+          <li style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem;">
+            <a class="nav-link" data-view="dashboard" id="sid-admin-back">
+              <span class="nav-icon"><i class="fa-solid fa-arrow-left"></i></span>
+              <span class="nav-label">Back to App</span>
             </a>
           </li>
         </ul>
       </nav>
+
+      <!-- Sidebar Support & Feedback form box -->
+      
 
       <!-- Sidebar Bottom Section -->
       <div class="sidebar-bottom">
@@ -759,6 +795,10 @@ Object.values(sections).forEach(section => {
       <div class="wizard-step active" id="wizard-step-1">
         <h3 class="step-title">Account Details</h3>
         <div class="form-group">
+          <label class="form-label" for="signup-name">Full Name</label>
+          <input type="text" id="signup-name" class="form-input" placeholder="John Doe" required>
+        </div>
+        <div class="form-group">
           <label class="form-label" for="signup-email">Email Address</label>
           <input type="email" id="signup-email" class="form-input" placeholder="name@domain.com" required>
         </div>
@@ -906,97 +946,117 @@ Object.values(sections).forEach(section => {
         <section id="view-dashboard" class="view-segment hidden">
           <div class="welcome-banner">
             <h2 class="welcome-title" id="dash-welcome-text">Welcome back, User</h2>
-            <p class="welcome-subtitle">Here's your health overview for today</p>
+                <!-- POPULATED DASHBOARD CONTENT -->
+          <div id="dash-populated-content">
+            <!-- 4-GRID BIOMETRIC CARDS -->
+            <div class="metrics-overview-grid">
+              <!-- 1. Heart Rate Widget -->
+              <div class="widget-card">
+                <div class="widget-header">
+                  <span class="widget-title">Heart Rate</span>
+                  <span class="widget-icon">●</span>
+                </div>
+                <span class="widget-value" id="dash-widget-hr">72</span>
+                <span class="widget-footer">bpm - Last 5 min avg</span>
+              </div>
+
+              <!-- 2. Activity Level Widget -->
+              <div class="widget-card">
+                <div class="widget-header">
+                  <span class="widget-title">Activity Level</span>
+                  <span class="widget-icon">●</span>
+                </div>
+                <span class="widget-value" id="dash-widget-activity">65%</span>
+                <span class="widget-footer" id="dash-widget-steps">Steps: 4,250 / 10,000</span>
+              </div>
+
+              <!-- 3. Sleep Quality Widget -->
+              <div class="widget-card">
+                <div class="widget-header">
+                  <span class="widget-title">Sleep Quality</span>
+                  <span class="widget-icon">●</span>
+                </div>
+                <span class="widget-value" id="dash-widget-sleep">7h 30m</span>
+                <span class="widget-footer">Last night average</span>
+              </div>
+
+              <!-- 4. Hydration Widget -->
+              <div class="widget-card">
+                <div class="widget-header">
+                  <span class="widget-title">Hydration</span>
+                  <span class="widget-icon">●</span>
+                </div>
+                <span class="widget-value" id="dash-widget-water">6/8</span>
+                <span class="widget-footer">cups - Daily water intake</span>
+              </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
+              <!-- Heart Rate Trends Chart -->
+              <div class="glass-panel">
+                <h3 class="panel-title">Heart Rate Trends</h3>
+                <canvas id="dash-chart-heart-rate" class="dashboard-chart"></canvas>
+              </div>
+
+              <!-- Activity Breakdown Chart -->
+              <div class="glass-panel">
+                <h3 class="panel-title">Activity Breakdown</h3>
+                <canvas id="dash-chart-activity" class="dashboard-chart"></canvas>
+              </div>
+            </div>
+
+            <!-- Sleep & Weekly Summary -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+              <!-- Sleep Patterns Chart -->
+              <div class="glass-panel">
+                <h3 class="panel-title">Sleep Patterns (7 days)</h3>
+                <canvas id="dash-chart-sleep" class="dashboard-chart"></canvas>
+              </div>
+
+              <!-- Weekly Summary -->
+              <div class="glass-panel">
+                <h3 class="panel-title">Weekly Summary</h3>
+                <canvas id="dash-chart-weekly" class="dashboard-chart"></canvas>
+              </div>
+            </div>
+
+            <!-- Dynamic AI Nudge Panel -->
+            <div class="glass-panel" id="dash-nudge-box" style="margin-top: 1.5rem; border-left: 5px solid var(--sidebar-active);">
+              <span class="form-label" style="color: var(--sidebar-active); font-size: 0.8rem; margin-bottom: 0.25rem;">Latest Smart Suggestion</span>
+              <p class="nudge-text" id="dash-nudge-text" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; line-height: 1.4; color: var(--text-dark);">
+                "Pair your smartwatch to generate a customized AI nudge recommendation."
+              </p>
+            </div>
+
+            <div style="display:flex; gap:1rem; margin-top:2rem;">
+              <button class="btn-primary" onclick="navigateTo('analysis')">
+                <span>Sync telemetry & run analysis</span>
+              </button>
+              <button class="btn-secondary" onclick="navigateTo('connect')">
+                <span>Connection Status</span>
+              </button>
+            </div>
           </div>
 
-          <!-- 4-GRID BIOMETRIC CARDS -->
-          <div class="metrics-overview-grid">
-            <!-- 1. Heart Rate Widget -->
-            <div class="widget-card">
-              <div class="widget-header">
-                <span class="widget-title">Heart Rate</span>
-                <span class="widget-icon">●</span>
-              </div>
-              <span class="widget-value" id="dash-widget-hr">72</span>
-              <span class="widget-footer">bpm - Last 5 min avg</span>
-            </div>
-
-            <!-- 2. Activity Level Widget -->
-            <div class="widget-card">
-              <div class="widget-header">
-                <span class="widget-title">Activity Level</span>
-                <span class="widget-icon">●</span>
-              </div>
-              <span class="widget-value" id="dash-widget-activity">65%</span>
-              <span class="widget-footer" id="dash-widget-steps">Steps: 4,250 / 10,000</span>
-            </div>
-
-            <!-- 3. Sleep Quality Widget -->
-            <div class="widget-card">
-              <div class="widget-header">
-                <span class="widget-title">Sleep Quality</span>
-                <span class="widget-icon">●</span>
-              </div>
-              <span class="widget-value" id="dash-widget-sleep">7h 30m</span>
-              <span class="widget-footer">Last night average</span>
-            </div>
-
-            <!-- 4. Hydration Widget -->
-            <div class="widget-card">
-              <div class="widget-header">
-                <span class="widget-title">Hydration</span>
-                <span class="widget-icon">●</span>
-              </div>
-              <span class="widget-value" id="dash-widget-water">6/8</span>
-              <span class="widget-footer">cups - Daily water intake</span>
-            </div>
-          </div>
-
-          <!-- Charts Section -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
-            <!-- Heart Rate Trends Chart -->
-            <div class="glass-panel">
-              <h3 class="panel-title">Heart Rate Trends</h3>
-              <canvas id="dash-chart-heart-rate" class="dashboard-chart"></canvas>
-            </div>
-
-            <!-- Activity Breakdown Chart -->
-            <div class="glass-panel">
-              <h3 class="panel-title">Activity Breakdown</h3>
-              <canvas id="dash-chart-activity" class="dashboard-chart"></canvas>
-            </div>
-          </div>
-
-          <!-- Sleep & Weekly Summary -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
-            <!-- Sleep Patterns Chart -->
-            <div class="glass-panel">
-              <h3 class="panel-title">Sleep Patterns (7 days)</h3>
-              <canvas id="dash-chart-sleep" class="dashboard-chart"></canvas>
-            </div>
-
-            <!-- Weekly Summary -->
-            <div class="glass-panel">
-              <h3 class="panel-title">Weekly Summary</h3>
-              <canvas id="dash-chart-weekly" class="dashboard-chart"></canvas>
-            </div>
-          </div>
-
-          <!-- Dynamic AI Nudge Panel -->
-          <div class="glass-panel" id="dash-nudge-box" style="margin-top: 1.5rem; border-left: 5px solid var(--sidebar-active);">
-            <span class="form-label" style="color: var(--sidebar-active); font-size: 0.8rem; margin-bottom: 0.25rem;">Latest Smart Suggestion</span>
-            <p class="nudge-text" id="dash-nudge-text" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; line-height: 1.4; color: var(--text-dark);">
-              "Pair your smartwatch to generate a customized AI nudge recommendation."
+          <!-- EMPTY DASHBOARD CONTENT -->
+          <div id="dash-empty-content" class="glass-panel hidden" style="text-align: center; padding: 3rem 2rem; max-width: 800px; margin: 2rem auto;">
+            <div style="font-size: 4.5rem; margin-bottom: 1.5rem;">🩺</div>
+            <h3 style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">Your Dashboard is Empty</h3>
+            <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6; max-width: 600px; margin: 0 auto 2rem;">
+              Welcome to BioSync! We don't have any recovery sessions or daily metrics recorded for your account yet. Let's start tracking your wellness journey by connecting your device, entering manual health logs, or running a facial fatigue scan.
             </p>
-          </div>
-
-          <div style="display:flex; gap:1rem; margin-top:2rem;">
-            <button class="btn-primary" onclick="navigateTo('analysis')">
-              <span>Sync telemetry & run analysis</span>
-            </button>
-            <button class="btn-secondary" onclick="navigateTo('connect')">
-              <span>Connection Status</span>
-            </button>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+              <button class="btn-primary" onclick="navigateTo('analysis')">
+                <span>Go to Ingestion Portal</span>
+              </button>
+              <button class="btn-secondary" onclick="navigateTo('webcam')">
+                <span>Run Webcam Scanner</span>
+              </button>
+              <button class="btn-secondary" onclick="navigateTo('connect')">
+                <span>Connect Smartwatch</span>
+              </button>
+            </div>
           </div>
         </section>
 
@@ -1081,8 +1141,8 @@ Object.values(sections).forEach(section => {
                   <span class="widget-value" id="scan-fatigue-val" style="font-size:2rem;">--%</span>
                 </div>
                 <div class="widget-card">
-                  <span class="metric-sub" style="font-weight:600;">Blink Rate</span>
-                  <span class="widget-value" id="scan-blink-val" style="font-size:2rem; color:var(--accent-cyan);">--</span>
+                  <span class="metric-sub" style="font-weight:600;">Eye Strain</span>
+                  <span class="widget-value" id="scan-eyestrain-val" style="font-size:2rem; color:var(--accent-cyan);">--</span>
                 </div>
               </div>
             </div>
@@ -1114,7 +1174,7 @@ Object.values(sections).forEach(section => {
                 <span class="status-card-title">Facial Scan</span>
                 <span id="analysis-fatigue-badge" class="status-badge-pill warning">Offline</span>
                 <div class="status-card-details" id="analysis-fatigue-details">
-                  Fatigue: -- | Blink Rate: --<br>Expression: --
+                  Fatigue: -- | Eye Strain: --<br>Expression: --
                 </div>
               </div>
 
@@ -1411,68 +1471,79 @@ Object.values(sections).forEach(section => {
           </div>
         </section>
 
-        <!-- ================= 9. ADMIN CONTROL CENTER ================= -->
-        <section id="view-admin" class="view-segment hidden">
+        <!-- ================= 9. ADMIN - USER MANAGEMENT ================= -->
+        <section id="view-admin-users" class="view-segment hidden">
           <div class="glass-panel">
-            <h2 class="welcome-title mb-1">Admin Portal</h2>
-            <p class="welcome-subtitle">System telemetry metrics, anomaly registries, and trigger rules</p>
+            <h2 class="welcome-title mb-1">User Management</h2>
+            <p class="welcome-subtitle">Active connection matrix of users currently online and streaming telemetry</p>
 
-            <div class="admin-grid mt-2">
-              <!-- Left matrix list -->
-              <div class="glass-panel" style="margin-bottom:0;">
-                <h3 class="form-label mb-1" style="font-size:1rem; display:flex; align-items:center; gap:0.5rem;">
-                  <span class="scan-pulse-dot" style="background-color: var(--accent-cyan)"></span>
-                  <span>Live Connection Matrix</span>
-                </h3>
-                <p class="metric-sub mb-1">WebSocket telemetry streams currently transmitting.</p>
-                
-                <div class="matrix-grid" id="live-matrix-grid">
-                  <div class="glass-panel text-center" style="grid-column: 1/-1;">
-                    No users streaming telemetry right now.
-                  </div>
-                </div>
-              </div>
-
-              <!-- Right logs and trigger configurations -->
-              <div class="flex-column" style="display:flex; flex-direction:column; gap:1.5rem;">
-                <!-- Anomaly list -->
-                <div class="glass-panel" style="margin-bottom:0;">
-                  <h3 class="form-label mb-1" style="font-size:1rem; color:var(--accent-pink)">Anomaly Logs</h3>
-                  <div class="anomaly-list" id="anomaly-logs-list">
-                    <div class="glass-panel text-center">
-                      No anomalies logged in the system.
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Settings sliders -->
-                <div class="glass-panel" style="margin-bottom:0;">
-                  <h3 class="form-label mb-1" style="font-size:1rem; color:var(--accent-blue);">AI Fine-Tuning Box</h3>
-                  <form id="admin-settings-form" style="margin-top:1rem;">
-                    <div class="form-group">
-                      <label class="form-label" style="font-size:0.75rem;">Heart Rate Threshold (BPM)</label>
-                      <input type="number" id="admin-hr-threshold" class="form-input" min="60" max="180" value="100">
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label" style="font-size:0.75rem;">Stress Trigger Limit</label>
-                      <input type="number" id="admin-stress-threshold" class="form-input" min="1" max="10" value="7">
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label" style="font-size:0.75rem;">AI Prompt Temperature</label>
-                      <input type="number" id="admin-ai-temp" class="form-input" step="0.1" min="0.1" max="1.5" value="0.7">
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                      <span class="metric-sub" id="admin-settings-status"></span>
-                      <button type="submit" class="btn-primary" style="padding:0.6rem 1.2rem; font-size:0.9rem;">
-                        Save Settings
-                      </button>
-                    </div>
-                  </form>
+            <div class="glass-panel mt-2" style="margin-bottom:0;">
+              <h3 class="form-label mb-1" style="font-size:1rem; display:flex; align-items:center; gap:0.5rem;">
+                <span class="scan-pulse-dot" style="background-color: var(--accent-cyan)"></span>
+                <span>Live Connection Matrix</span>
+              </h3>
+              <div class="matrix-grid" id="live-matrix-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+                <div class="glass-panel text-center" style="grid-column: 1/-1;">
+                  No users streaming telemetry right now.
                 </div>
               </div>
             </div>
           </div>
         </section>
+
+        <!-- ================= 10. ADMIN - ANOMALY LOGS ================= -->
+        <section id="view-admin-anomalies" class="view-segment hidden">
+          <div class="glass-panel">
+            <h2 class="welcome-title mb-1">Anomaly Registry</h2>
+            <p class="welcome-subtitle">Recent system anomaly alerts and threshold breach logs</p>
+
+            <div class="glass-panel mt-2" style="margin-bottom:0;">
+              <h3 class="form-label mb-1" style="font-size:1rem; color:var(--accent-pink)">Anomaly Logs</h3>
+              <div class="anomaly-list" id="anomaly-logs-list" style="max-height: 500px; overflow-y: auto; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                <div class="glass-panel text-center">
+                  No anomalies logged in the system.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= 11. ADMIN - AI FINE-TUNING ================= -->
+        <section id="view-admin-finetuning" class="view-segment hidden">
+          <div class="glass-panel">
+            <h2 class="welcome-title mb-1">AI Context & Fine-Tuning</h2>
+            <p class="welcome-subtitle">Configure physiological thresholds and AI temperature rules</p>
+
+            <div class="glass-panel mt-2" style="max-width: 600px; margin: 2rem auto 0; padding: 2rem;">
+              <h3 class="form-label mb-1" style="font-size:1.15rem; color:var(--accent-blue);">AI Tuning Controls</h3>
+              <form id="admin-settings-form" style="margin-top:1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+                <div class="form-group">
+                  <label class="form-label">Heart Rate Threshold (BPM)</label>
+                  <input type="number" id="admin-hr-threshold" class="form-input" min="60" max="180" value="100">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Stress Trigger Limit</label>
+                  <input type="number" id="admin-stress-threshold" class="form-input" min="1" max="10" value="7">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">AI Prompt Temperature</label>
+                  <input type="number" id="admin-ai-temp" class="form-input" step="0.1" min="0.1" max="1.5" value="0.7">
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 1rem;">
+                  <span class="metric-sub" id="admin-settings-status" style="color: var(--accent-cyan);"></span>
+                  <button type="submit" class="btn-primary" style="padding:0.6rem 1.5rem; font-size:0.95rem; width: auto; height: auto;">
+                    Save Settings
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= 12. ADMIN - SUPPORT & FEEDBACKS ================= -->
+        
+        <!-- ================= 13. USER - SUPPORT & FEEDBACK ================= -->
+        
 
       </main>
     </div>
@@ -1652,14 +1723,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.capturedSnapshot) {
         fatigueBadge.textContent = 'Captured';
         fatigueBadge.className = 'status-badge-pill success';
-        fatigueDetails.innerHTML = `Fatigue: ${state.fatigueScore}/10 | Blink Rate: ${state.blinkFrequency}<br>Expression: Focused`;
+        fatigueDetails.innerHTML = `Fatigue: ${state.fatigueScore}% | Eye Strain: ${state.eyeStrain || 20}%<br>Expression: ${state.faceAnalysisInsights ? 'Analyzed' : 'Ready'}`;
         
         previewBox.style.display = 'block';
         previewImg.src = state.capturedSnapshot;
       } else {
         fatigueBadge.textContent = 'Offline';
         fatigueBadge.className = 'status-badge-pill warning';
-        fatigueDetails.innerHTML = 'Fatigue: -- | Blink Rate: --<br>Expression: --';
+        fatigueDetails.innerHTML = 'Fatigue: -- | Eye Strain: --<br>Expression: --';
         previewBox.style.display = 'none';
       }
 
@@ -1671,6 +1742,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 
 });
+
 </script>
 </body>
 </html>

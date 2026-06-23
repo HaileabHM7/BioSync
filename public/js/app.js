@@ -64,10 +64,19 @@ const routes = {
   'analysis': { requireAuth: true },
   'report': { requireAuth: true },
   'profile': { requireAuth: true },
-  'admin': { requireAuth: true, requireAdmin: true }
+  'admin': { requireAuth: true, requireAdmin: true },
+  'admin-users': { requireAuth: true, requireAdmin: true },
+  'admin-anomalies': { requireAuth: true, requireAdmin: true },
+  'admin-finetuning': { requireAuth: true, requireAdmin: true },
+  'admin-feedback': { requireAuth: true, requireAdmin: true }
 };
 
 function navigateTo(viewId) {
+  // If navigating to base admin portal, redirect to admin-users
+  if (viewId === 'admin') {
+    return navigateTo('admin-users');
+  }
+
   const route = routes[viewId];
   if (!route) return;
 
@@ -77,6 +86,27 @@ function navigateTo(viewId) {
   }
   if (route.requireAuth && route.requireAdmin && state.user?.role !== 'admin') {
     return navigateTo('dashboard');
+  }
+
+  // Swapping admin/user sidebar menus
+  const userSidebar = document.getElementById('sidebar-nav-user');
+  const adminSidebar = document.getElementById('sidebar-nav-admin');
+  const feedbackBox = document.querySelector('.sidebar-feedback-box');
+  
+  if (viewId.startsWith('admin')) {
+    if (userSidebar) userSidebar.classList.add('hidden');
+    if (adminSidebar) adminSidebar.classList.remove('hidden');
+    if (feedbackBox) feedbackBox.classList.add('hidden');
+  } else {
+    if (userSidebar) userSidebar.classList.remove('hidden');
+    if (adminSidebar) adminSidebar.classList.add('hidden');
+    if (feedbackBox) {
+      if (route.requireAuth) {
+        feedbackBox.classList.remove('hidden');
+      } else {
+        feedbackBox.classList.add('hidden');
+      }
+    }
   }
 
   // Update nav sidebar links active highlights
@@ -113,10 +143,14 @@ function navigateTo(viewId) {
   // View-specific initializers
   if (viewId === 'dashboard') {
     loadDashboard();
+  } else if (viewId === 'analysis') {
+    updateIngestionPortalStatus();
   } else if (viewId === 'report') {
     loadReportPage();
-  } else if (viewId === 'admin') {
+  } else if (viewId === 'admin-users' || viewId === 'admin-anomalies' || viewId === 'admin-finetuning') {
     loadAdminDashboard();
+  } else if (viewId === 'admin-feedback') {
+    loadAdminFeedback();
   } else if (viewId === 'profile') {
     loadProfileSettingsPage();
   }
@@ -478,30 +512,35 @@ function setupEventListeners() {
   const sleepValue = document.getElementById('sleep-value');
   sleepSlider.addEventListener('input', () => {
     sleepValue.textContent = `${sleepSlider.value} hrs`;
+    updateIngestionPortalStatus();
   });
 
   const stressSlider = document.getElementById('stress-slider');
   const stressValue = document.getElementById('stress-value');
   stressSlider.addEventListener('input', () => {
     stressValue.textContent = `${stressSlider.value}/10`;
+    updateIngestionPortalStatus();
   });
 
   const stepsSlider = document.getElementById('steps-slider');
   const stepsValue = document.getElementById('steps-value');
   stepsSlider.addEventListener('input', () => {
     stepsValue.textContent = Number(stepsSlider.value).toLocaleString();
+    updateIngestionPortalStatus();
   });
 
   const activeSlider = document.getElementById('active-slider');
   const activeValue = document.getElementById('active-value');
   activeSlider.addEventListener('input', () => {
     activeValue.textContent = `${activeSlider.value} mins`;
+    updateIngestionPortalStatus();
   });
 
   const waterCupsSlider = document.getElementById('water-cups-slider');
   const waterCupsValue = document.getElementById('water-cups-value');
   waterCupsSlider.addEventListener('input', () => {
     waterCupsValue.textContent = `${waterCupsSlider.value}/8 cups`;
+    updateIngestionPortalStatus();
   });
 
   // Aggregate Submission
@@ -576,6 +615,7 @@ async function handleLoginSubmit(e) {
 
 async function handleSignupSubmit(e) {
   e.preventDefault();
+  const name = document.getElementById('signup-name').value.trim();
   const email = document.getElementById('signup-email').value;
   const password = document.getElementById('signup-password').value;
   const errorEl = document.getElementById('signup-error');
@@ -585,6 +625,7 @@ async function handleSignupSubmit(e) {
   // Validate Step 3 questions (Q6 to Q10)
   for (let i = 6; i <= 10; i++) {
     const question = document.querySelector(`.wizard-question[data-qid="q${i}"]`);
+    if (!question) continue;
     const selected = question.querySelectorAll('.selection-card.selected');
     if (selected.length === 0) {
       errorEl.textContent = `Please answer question ${i} before creating your account.`;
@@ -594,7 +635,7 @@ async function handleSignupSubmit(e) {
   }
 
   // Collect answers
-  const onboardingAnswers = {};
+  const onboardingAnswers = { name };
   document.querySelectorAll('.wizard-question').forEach(q => {
     const qid = q.dataset.qid;
     const type = q.dataset.type;
@@ -919,11 +960,13 @@ function disconnectSmartwatch() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   sendTelemetryUpdate(null, 'Disconnected');
+  updateIngestionPortalStatus();
 }
 
 function updateBpmUI(bpm) {
   document.getElementById('live-bpm-value').innerHTML = `${bpm} <span class="live-bpm-unit">BPM</span>`;
   document.getElementById('dash-widget-hr').textContent = bpm;
+  updateIngestionPortalStatus();
 }
 
 // ECG Canvas pulse wave
@@ -1062,21 +1105,51 @@ function captureWebcamSnapshot() {
   
   document.getElementById('scanner-guide').classList.remove('scanner-active');
 
-  // Fatigue score calculation based on sliders
-  const stressSliderVal = parseInt(document.getElementById('stress-slider').value);
-  const sleepSliderVal = parseFloat(document.getElementById('sleep-slider').value);
-  
-  const fatigueBase = Math.min(10, Math.max(0, 10 - (sleepSliderVal * 1.1) + (stressSliderVal * 0.4)));
-  state.fatigueScore = Math.round(fatigueBase * 10); // e.g. 28%
-  state.blinkFrequency = Math.round(14 + (fatigueBase * 1.8));
+  const resultsBox = document.getElementById('scan-results-box');
+  const fatigueVal = document.getElementById('scan-fatigue-val');
+  const eyeStrainVal = document.getElementById('scan-eyestrain-val');
 
-  document.getElementById('scan-results-box').classList.remove('hidden');
-  document.getElementById('scan-fatigue-val').textContent = `${state.fatigueScore}%`;
-  
-  let rateLabel = 'Normal';
-  if (state.blinkFrequency > 22) rateLabel = 'High (Fatigued)';
-  else if (state.blinkFrequency < 10) rateLabel = 'Low (Staring)';
-  document.getElementById('scan-blink-val').textContent = `${state.blinkFrequency} bpm (${rateLabel})`;
+  if (resultsBox) resultsBox.classList.remove('hidden');
+  if (fatigueVal) fatigueVal.textContent = 'Analyzing...';
+  if (eyeStrainVal) eyeStrainVal.textContent = 'Analyzing...';
+
+  fetch('/api/ai/analyze-face', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${state.token}`
+    },
+    body: JSON.stringify({ faceSnapshotUrl: dataUrl })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('Face analysis failed');
+    return res.json();
+  })
+  .then(data => {
+    state.fatigueScore = data.fatigueScore;
+    state.eyeStrain = data.eyeStrain;
+    state.expressionText = data.insights || 'Expression analyzed';
+
+    if (fatigueVal) fatigueVal.textContent = `${data.fatigueScore}%`;
+    if (eyeStrainVal) eyeStrainVal.textContent = `${data.eyeStrain}%`;
+
+    updateIngestionPortalStatus();
+  })
+  .catch(err => {
+    console.error('AI scan analysis failed:', err);
+    // Fallback: calculate using sliders if API fails
+    const stressSliderVal = parseInt(document.getElementById('stress-slider').value);
+    const sleepSliderVal = parseFloat(document.getElementById('sleep-slider').value);
+    const fatigueBase = Math.min(10, Math.max(0, 10 - (sleepSliderVal * 1.1) + (stressSliderVal * 0.4)));
+    state.fatigueScore = Math.round(fatigueBase * 10);
+    state.eyeStrain = Math.round(20 + (fatigueBase * 5));
+    state.expressionText = `[Local Fallback] Ocular features indicate fatigue ${state.fatigueScore}%`;
+
+    if (fatigueVal) fatigueVal.textContent = `${state.fatigueScore}%`;
+    if (eyeStrainVal) eyeStrainVal.textContent = `${state.eyeStrain}%`;
+
+    updateIngestionPortalStatus();
+  });
 }
 
 function stopWebcam() {
@@ -1098,6 +1171,8 @@ function stopWebcam() {
   document.getElementById('camera-reset-btn').style.display = 'none';
   document.getElementById('camera-stop-btn').style.display = 'none';
   document.getElementById('scanner-guide').classList.remove('scanner-active');
+
+  updateIngestionPortalStatus();
 }
 
 function resetWebcamScanner() {
@@ -1122,6 +1197,82 @@ function resetWebcamScanner() {
   document.getElementById('scanner-guide').classList.add('scanner-active');
   
   state.capturedSnapshot = null;
+  state.fatigueScore = undefined;
+  state.eyeStrain = undefined;
+  state.expressionText = undefined;
+
+  updateIngestionPortalStatus();
+}
+
+function updateIngestionPortalStatus() {
+  const hrBadge = document.getElementById('analysis-hr-badge');
+  const hrDetails = document.getElementById('analysis-hr-details');
+  const stepsSlider = document.getElementById('steps-slider');
+  const activeSlider = document.getElementById('active-slider');
+  
+  if (hrBadge && hrDetails) {
+    if (state.heartRate) {
+      hrBadge.textContent = 'Syncing';
+      hrBadge.className = 'status-badge-pill success';
+      
+      const stepsVal = stepsSlider ? Number(stepsSlider.value).toLocaleString() : '0';
+      const activeVal = activeSlider ? activeSlider.value : '0';
+      hrDetails.innerHTML = `Heart Rate: ${state.heartRate} bpm | Steps: ${stepsVal}<br>Active: ${activeVal} min`;
+    } else {
+      hrBadge.textContent = 'Disconnected';
+      hrBadge.className = 'status-badge-pill warning';
+      hrDetails.innerHTML = `Heart Rate: -- bpm | Steps: --<br>Active: -- min`;
+    }
+  }
+
+  const fatigueBadge = document.getElementById('analysis-fatigue-badge');
+  const fatigueDetails = document.getElementById('analysis-fatigue-details');
+  const previewBox = document.getElementById('analysis-img-preview-box');
+  const previewImg = document.getElementById('analysis-snapshot-preview');
+
+  if (fatigueBadge && fatigueDetails) {
+    if (state.capturedSnapshot) {
+      fatigueBadge.textContent = 'Captured';
+      fatigueBadge.className = 'status-badge-pill success';
+      
+      const fScore = state.fatigueScore !== undefined ? state.fatigueScore : '--';
+      const eStrain = state.eyeStrain !== undefined ? state.eyeStrain : '--';
+      const expr = state.expressionText || 'Expression cached';
+      
+      fatigueDetails.innerHTML = `Fatigue: ${fScore}% | Eye Strain: ${eStrain}%<br>Expression: ${expr}`;
+      
+      if (previewBox && previewImg) {
+        previewImg.src = state.capturedSnapshot;
+        previewBox.style.display = 'block';
+      }
+    } else {
+      fatigueBadge.textContent = 'Offline';
+      fatigueBadge.className = 'status-badge-pill warning';
+      fatigueDetails.innerHTML = `Fatigue: -- | Eye Strain: --<br>Expression: --`;
+      
+      if (previewBox) {
+        previewBox.style.display = 'none';
+      }
+    }
+  }
+
+  const manualBadge = document.getElementById('analysis-manual-badge');
+  const manualDetails = document.getElementById('analysis-manual-details');
+  const sleepSlider = document.getElementById('sleep-slider');
+  const waterCupsSlider = document.getElementById('water-cups-slider');
+  const stressSlider = document.getElementById('stress-slider');
+
+  if (manualBadge && manualDetails) {
+    const sleepVal = sleepSlider ? sleepSlider.value : '0';
+    const waterCups = waterCupsSlider ? parseInt(waterCupsSlider.value) : 0;
+    const waterVal = waterCups * 250;
+    const stressVal = stressSlider ? stressSlider.value : '0';
+    const activeVal = activeSlider ? activeSlider.value : '0';
+
+    manualBadge.textContent = 'Ready';
+    manualBadge.className = 'status-badge-pill success';
+    manualDetails.innerHTML = `Sleep: ${sleepVal} hrs | Water: ${waterVal} ml<br>Stress: ${stressVal}/10 | Active: ${activeVal} mins`;
+  }
 }
 
 // --- ANALYSIS AGGREGATOR VIEW ---
@@ -1130,6 +1281,8 @@ function loadDashboard() {
 
   const nudgeBanner = document.getElementById('dash-nudge-box');
   const welcomeText = document.getElementById('dash-welcome-text');
+  const populatedContent = document.getElementById('dash-populated-content');
+  const emptyContent = document.getElementById('dash-empty-content');
   
   welcomeText.innerHTML = `Welcome back, <span style="color: var(--accent-blue)">${state.user.email.split('@')[0]}</span>!`;
 
@@ -1138,7 +1291,13 @@ function loadDashboard() {
   })
   .then(res => res.json())
   .then(sessions => {
-    if (sessions.length > 0) {
+    if (!sessions || sessions.length === 0) {
+      if (emptyContent) emptyContent.classList.remove('hidden');
+      if (populatedContent) populatedContent.classList.add('hidden');
+    } else {
+      if (emptyContent) emptyContent.classList.add('hidden');
+      if (populatedContent) populatedContent.classList.remove('hidden');
+
       const latest = sessions[sessions.length - 1];
       
       // Update widgets on dashboard
@@ -1394,6 +1553,7 @@ async function submitSessionAnalysis() {
     waterMl: waterVal,
     stressLevel: stressVal,
     fatigueBlinkRate: state.blinkFrequency || 16,
+    eyeStrain: state.eyeStrain || 20,
     fatigueScore: state.fatigueScore || 28,
     faceSnapshotUrl: state.capturedSnapshot || '',
     steps: stepsVal,
@@ -1938,11 +2098,12 @@ function validateWizardStep(step) {
   if (errorEl) errorEl.classList.add('hidden');
 
   if (step === 1) {
-    const email = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
-    if (!email || !password) {
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value.trim();
+    if (!name || !email || !password) {
       if (errorEl) {
-        errorEl.textContent = 'Please enter both email and password.';
+        errorEl.textContent = 'Please enter your name, email, and password.';
         errorEl.classList.remove('hidden');
       }
       return false;
@@ -1959,6 +2120,7 @@ function validateWizardStep(step) {
     // Check Q1 to Q5
     for (let i = 1; i <= 5; i++) {
       const question = document.querySelector(`.wizard-question[data-qid="q${i}"]`);
+      if (!question) continue;
       const selected = question.querySelectorAll('.selection-card.selected');
       if (selected.length === 0) {
         if (errorEl) {
@@ -2017,11 +2179,47 @@ function bindWizardEvents() {
   }
 
   if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      if (validateWizardStep(wizardCurrentStep)) {
-        wizardCurrentStep++;
-        updateWizardUI();
+    nextBtn.addEventListener('click', async () => {
+      // 1. Run sync validation
+      if (!validateWizardStep(wizardCurrentStep)) return;
+
+      // 2. Async email existence check on Step 1
+      if (wizardCurrentStep === 1) {
+        const email = document.getElementById('signup-email').value.trim();
+        const errorEl = document.getElementById('signup-error');
+        
+        nextBtn.disabled = true;
+        const originalText = nextBtn.innerHTML;
+        nextBtn.innerHTML = '<span>Checking...</span>';
+        
+        try {
+          const res = await fetch('/api/auth/check-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          
+          if (!res.ok) throw new Error('Email check failed');
+          
+          const data = await res.json();
+          if (data.exists) {
+            if (errorEl) {
+              errorEl.textContent = 'Account with this email already exists.';
+              errorEl.classList.remove('hidden');
+            }
+            return;
+          }
+        } catch (err) {
+          console.error('Email check error:', err);
+        } finally {
+          nextBtn.disabled = false;
+          nextBtn.innerHTML = originalText;
+        }
       }
+
+      // Proceed
+      wizardCurrentStep++;
+      updateWizardUI();
     });
   }
 }

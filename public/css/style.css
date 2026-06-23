@@ -1250,25 +1250,46 @@ main.app-content {
 }
 
 /* Selection Cards (Goals & Hobbies) */
-.selection-grid {
+.selection-grid, .selection-grid-vertical {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  gap: 0.75rem;
   margin-top: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .selection-grid, .selection-grid-vertical {
+    grid-template-columns: 1fr;
+  }
 }
 
 .selection-card {
   background-color: var(--panel-bg);
-  border: 2px solid var(--border-light);
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  text-align: center;
+  border: 1.5px solid var(--border-light);
+  border-radius: 0.6rem;
+  padding: 0.75rem 1rem;
+  text-align: left;
   cursor: pointer;
   transition: var(--transition-smooth);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  box-sizing: border-box;
+}
+
+.selection-card::before {
+  content: '';
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--border-light);
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: var(--transition-smooth);
+  box-sizing: border-box;
 }
 
 .selection-card:hover {
@@ -1278,14 +1299,32 @@ main.app-content {
 
 .selection-card.selected {
   border-color: var(--accent-blue);
-  background-color: rgba(79, 70, 229, 0.1);
+  background-color: rgba(79, 70, 229, 0.08);
   box-shadow: 0 0 0 1px var(--accent-blue);
 }
 
+.selection-card.selected::before {
+  border-color: var(--accent-blue);
+  background-color: var(--accent-blue);
+  box-shadow: inset 0 0 0 3px var(--panel-bg);
+}
+
+/* For multi-select, display checkbox checkmark */
+.wizard-question[data-type="multi"] .selection-card::before {
+  border-radius: 0.2rem;
+}
+
+.wizard-question[data-type="multi"] .selection-card.selected::before {
+  box-shadow: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='10' height='10'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .selection-label {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-dark);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 /* Status Indicators */

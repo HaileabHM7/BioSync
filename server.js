@@ -91,6 +91,19 @@ app.post('/api/auth/signup', async (req, res) => {
   }
 });
 
+app.post('/api/auth/check-email', async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+  try {
+    const existing = await db.get('SELECT id FROM users WHERE email = ?', [email]);
+    res.json({ exists: !!existing });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -224,7 +237,7 @@ app.get('/api/telegram/status', authenticateToken, async (req, res) => {
 
 
 app.post('/api/sessions/submit', authenticateToken, async (req, res) => {
-  const { heartRate, sleepHours, waterMl, stressLevel, fatigueBlinkRate, fatigueScore, faceSnapshotUrl, steps, activeMinutes } = req.body;
+  const { heartRate, sleepHours, waterMl, stressLevel, fatigueBlinkRate, eyeStrain, fatigueScore, faceSnapshotUrl, steps, activeMinutes } = req.body;
   const userId = req.user.id;
 
   if (heartRate == null || sleepHours == null || waterMl == null || stressLevel == null) {
@@ -239,9 +252,9 @@ app.post('/api/sessions/submit', authenticateToken, async (req, res) => {
 
     // 2. Save session to DB
     const sessionResult = await db.run(`
-      INSERT INTO sessions (user_id, heart_rate, sleep_hours, water_ml, stress_level, fatigue_blink_rate, fatigue_score, face_snapshot_url, steps, active_minutes)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [userId, heartRate, sleepHours, waterMl, stressLevel, fatigueBlinkRate || 0, fatigueScore || 0, faceSnapshotUrl || '', steps || 0, activeMinutes || 0]);
+      INSERT INTO sessions (user_id, heart_rate, sleep_hours, water_ml, stress_level, fatigue_blink_rate, eye_strain, fatigue_score, face_snapshot_url, steps, active_minutes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [userId, heartRate, sleepHours, waterMl, stressLevel, fatigueBlinkRate || 0, eyeStrain || 0, fatigueScore || 0, faceSnapshotUrl || '', steps || 0, activeMinutes || 0]);
     
     const sessionId = sessionResult.id;
 
@@ -251,6 +264,8 @@ app.post('/api/sessions/submit', authenticateToken, async (req, res) => {
       sleepHours,
       waterMl,
       stressLevel,
+      fatigueBlinkRate,
+      eyeStrain: eyeStrain || 0,
       fatigueScore: fatigueScore || 0,
       hobbies,
       wellnessGoals,
@@ -341,6 +356,21 @@ app.get('/api/sessions/history', authenticateToken, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.post('/api/ai/analyze-face', authenticateToken, async (req, res) => {
+  const { faceSnapshotUrl } = req.body;
+  if (!faceSnapshotUrl) {
+    return res.status(400).json({ error: 'Webcam snapshot is required' });
+  }
+  try {
+    const analysis = await aiEngine.analyzeFaceSnapshot(faceSnapshotUrl);
+    res.json(analysis);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 // --- ADMIN API ---
 
